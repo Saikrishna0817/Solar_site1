@@ -1,0 +1,61 @@
+district,state,latitude,longitude,elevation_m,slope_deg,aspect_deg
+Khammam,Telangana,17.1729,80.3639,86.0,2.09,152.4
+Adilabad,Telangana,19.5449,78.5683,417.0,4.04,160.5
+Karimnagar,Telangana,18.4076,79.2649,264.0,2.1,133.5
+Hanumakonda,Telangana,18.0327,79.5414,270.0,1.95,90.0
+Medak,Telangana,17.9375,78.1919,502.0,2.09,152.3
+Nizamabad,Telangana,18.7249,78.1848,424.0,2.1,226.6
+Ranga Reddy,Telangana,17.1334,78.3829,615.0,2.15,180.0
+Nalgonda,Telangana,16.858,79.1586,208.0,2.09,180.0
+Mahabubnagar,Telangana,16.6964,78.0232,465.0,3.98,133.8
+Hyderabad,Telangana,17.3887,78.4692,508.0,2.15,160.7
+Sangareddy,Telangana,17.8684,77.9469,537.0,2.16,115.4
+Medchal–Malkajgiri,Telangana,17.535,78.554,595.0,2.78,180.0
+Siddipet,Telangana,18.0058,78.8981,488.0,2.16,180.0
+Jogulamba Gadwal,Telangana,16.0999,77.87,312.0,1.34,133.9
+Warangal,Telangana,17.8676,79.7604,238.0,1.35,180.0
+Jangaon,Telangana,17.7467,79.2038,366.0,1.95,133.6
+Vikarabad,Telangana,17.2701,77.7175,483.0,2.15,207.6
+Mancherial,Telangana,18.9805,79.4198,192.0,3.43,90.0
+Kumuram Bheem Asifabad,Telangana,19.3339,79.3899,194.0,2.17,157.0
+Nirmal,Telangana,19.0915,78.3565,337.0,2.17,207.9
+Peddapalli,Telangana,18.6207,79.4724,191.0,3.45,90.0
+Jagtial,Telangana,18.8214,78.9083,267.0,1.96,133.4
+Rajanna Sircilla,Telangana,18.4526,78.7738,370.0,2.16,152.2
+Bhadradri Kothagudem,Telangana,17.7157,80.7624,104.0,2.16,133.6
+Jayashankar Bhupalapally,Telangana,18.5129,79.9525,171.0,2.16,133.5
+Mahabubabad,Telangana,17.7139,79.9179,206.0,2.09,115.5
+Suryapet,Telangana,17.0803,79.7168,179.0,2.09,133.7
+Nagarkurnool,Telangana,16.4157,78.6675,450.0,2.09,133.8
+Yadadri Bhuvanagiri,Telangana,17.4282,79.0703,326.0,1.94,133.7
+Wanaparthy,Telangana,16.2849,77.9853,366.0,2.68,180.0
+Kamareddy,Telangana,18.3165,78.0441,502.0,2.69,122.3
+Mulugu,Telangana,18.3146,80.3025,168.0,4.7,99.0
+Narayanpet,Telangana,16.7005,77.5175,413.0,2.09,165.4
+Srikakulam,Andhra Pradesh,18.6224,84.1758,45.0,2.78,165.2
+Vizianagaram,Andhra Pradesh,18.276,83.4212,74.0,3.07,199.3
+Visakhapatnam,Andhra Pradesh,17.8055,83.3174,145.0,20.62,159.0
+East Godavari,Andhra Pradesh,16.9961,81.6851,18.0,1.34,133.7
+West Godavari,Andhra Pradesh,16.643,81.5933,11.0,2.15,152.4
+Krishna,Andhra Pradesh,16.238,81.1033,7.0,1.34,133.8
+Guntur,Andhra Pradesh,16.2853,80.4635,22.0,2.09,133.8
+Kurnool,Andhra Pradesh,15.548,77.6239,473.0,3.95,207.4
+Prakasam,Andhra Pradesh,15.5642,79.7929,44.0,2.14,180.0
+YSR Kadapa,Andhra Pradesh,14.5397,78.6254,155.0,1.33,134.1
+Sri Potti Sriramulu Nellore,Andhra Pradesh,14.5575,79.638,49.0,2.13,134.1
+Anantapuram,Andhra Pradesh,14.7241,77.4488,408.0,2.13,126.0
+Chittoor,Andhra Pradesh,13.2029,78.9971,410.0,5.03,168.5
+Tirupati,Andhra Pradesh,13.8893,79.6242,76.0,1.33,180.0
+Annamayya,Andhra Pradesh,13.7884,78.5572,600.0,2.94,180.0
+Sri Sathya Sai,Andhra Pradesh,14.1682,77.6776,461.0,2.13,134.1
+Bapatla,Andhra Pradesh,15.9342,80.4525,4.0,1.34,133.9
+Parvathipuram Manyam,Andhra Pradesh,18.7515,83.4618,112.0,3.47,152.2
+Eluru,Andhra Pradesh,17.0144,81.183,112.0,2.15,133.7
+Alluri Sitharama Raju,Andhra Pradesh,18.0592,82.5638,939.0,5.2,152.3
+Dr. B. R. Ambedkar Konaseema,Andhra Pradesh,16.6289,82.0327,8.0,2.09,165.4
+Kakinada,Andhra Pradesh,17.1205,82.2533,20.0,2.15,165.3
+Anakapalli,Andhra Pradesh,17.6715,82.7463,101.0,2.94,226.4
+Nandyal,Andhra Pradesh,15.525,78.2918,305.0,3.83,82.5
+NTR,Andhra Pradesh,16.817,80.4275,52.0,2.09,133.7
+Palnadu,Andhra Pradesh,16.3232,79.8182,179.0,5.45,187.2
+Markapuram,Andhra Pradesh,15.6641,79.2664,172.0,2.67,148.6

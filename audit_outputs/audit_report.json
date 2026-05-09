@@ -1,0 +1,263 @@
+{
+  "summary": {
+    "shapes": {
+      "features_train": [
+        48,
+        40
+      ],
+      "features_test": [
+        12,
+        40
+      ],
+      "labels_train": [
+        48,
+        3
+      ],
+      "labels_test": [
+        12,
+        3
+      ],
+      "master_engineered": [
+        60,
+        44
+      ]
+    }
+  },
+  "numeric_feature_count": 39,
+  "missing_value_summary": "No missing values detected",
+  "high_null_features": [],
+  "top_drift_features": [
+    {
+      "feature": "avg_wind_speed_m_s",
+      "ks_stat": 0.3541666666666667,
+      "p_value": 0.15632856820503982
+    },
+    {
+      "feature": "grassland_pct",
+      "ks_stat": 0.3541666666666667,
+      "p_value": 0.15632856820503982
+    },
+    {
+      "feature": "wasteland_builtup_pct",
+      "ks_stat": 0.3333333333333333,
+      "p_value": 0.2087244613022889
+    },
+    {
+      "feature": "census_pop_2024_projected",
+      "ks_stat": 0.3125,
+      "p_value": 0.2735860257894319
+    },
+    {
+      "feature": "avg_ghi_kwh_m2_day",
+      "ks_stat": 0.3125,
+      "p_value": 0.2735860257894319
+    }
+  ],
+  "train_test_district_overlap": [],
+  "train_district_count": 48,
+  "test_district_count": 12,
+  "summary_stats_path": "/home/krishna/Desktop/Projects/AAC/Solar_site/audit_outputs/summary_statistics.csv",
+  "top10_correlated_pairs": [
+    {
+      "feature_1": "avg_ghi_kwh_m2_day",
+      "feature_2": "peak_sun_hours",
+      "corr": 0.9999999999999997
+    },
+    {
+      "feature_1": "dist_nearest_road_km",
+      "feature_2": "dist_nearest_substation_km",
+      "corr": 0.9999974331779011
+    },
+    {
+      "feature_1": "dist_nearest_road_km",
+      "feature_2": "dist_nearest_transmission_line_km",
+      "corr": 0.9999970971706257
+    },
+    {
+      "feature_1": "dist_nearest_transmission_line_km",
+      "feature_2": "dist_nearest_substation_km",
+      "corr": 0.999996666944109
+    },
+    {
+      "feature_1": "builtup_pct",
+      "feature_2": "wasteland_builtup_pct",
+      "corr": 0.9974589903567791
+    },
+    {
+      "feature_1": "solar_variability",
+      "feature_2": "solar_efficiency_index",
+      "corr": 0.9966769084779453
+    },
+    {
+      "feature_1": "dist_nearest_transmission_line_km",
+      "feature_2": "infrastructure_accessibility_index",
+      "corr": -0.9926924117489931
+    },
+    {
+      "feature_1": "dist_nearest_substation_km",
+      "feature_2": "infrastructure_accessibility_index",
+      "corr": -0.9926545899045451
+    },
+    {
+      "feature_1": "dist_nearest_road_km",
+      "feature_2": "infrastructure_accessibility_index",
+      "corr": -0.992649428828657
+    },
+    {
+      "feature_1": "avg_ghi_kwh_m2_day",
+      "feature_2": "cuf",
+      "corr": 0.9859864435263636
+    }
+  ],
+  "pairs_corr_gt_0.8_count": 40,
+  "pairs_corr_gt_0.9_count": 21,
+  "VIF_top": [
+    {
+      "feature": "avg_ghi_kwh_m2_day",
+      "VIF": Infinity
+    },
+    {
+      "feature": "peak_sun_hours",
+      "VIF": Infinity
+    },
+    {
+      "feature": "builtup_pct",
+      "VIF": Infinity
+    },
+    {
+      "feature": "cropland_pct",
+      "VIF": 11389078.848807605
+    },
+    {
+      "feature": "wasteland_pct",
+      "VIF": 4194304.001953125
+    },
+    {
+      "feature": "shrubland_pct",
+      "VIF": 898295.9485054505
+    },
+    {
+      "feature": "dist_nearest_road_km",
+      "VIF": 274799.08101881517
+    },
+    {
+      "feature": "dist_nearest_transmission_line_km",
+      "VIF": 233784.99622266446
+    },
+    {
+      "feature": "grassland_pct",
+      "VIF": 146609.07482796005
+    },
+    {
+      "feature": "dist_nearest_substation_km",
+      "VIF": 86288.13798740272
+    }
+  ],
+  "cuf_stats": {
+    "mean": 0.1490166666666667,
+    "std": 0.0053060300415904045,
+    "min": 0.1391,
+    "max": 0.1616,
+    "skewness": 0.06826453843837232,
+    "kurtosis": -0.3208462240593293
+  },
+  "lowest_cuf_districts": {
+    "kakinada": 0.1391,
+    "parvathipuram manyam": 0.1394,
+    "srikakulam": 0.1396
+  },
+  "highest_cuf_districts": {
+    "kurnool": 0.1575,
+    "anantapuram": 0.1603,
+    "sri sathya sai": 0.1616
+  },
+  "scaling_mean_std_summary": {
+    "mean_of_means": 2.852063314862382e-16,
+    "mean_of_stds": 1.0105823052798233,
+    "max_abs_mean": 6.5133084111342514e-15,
+    "max_std_dev_from_1": 0.010582305279822846
+  },
+  "most_skewed_features": {
+    "population_density_per_sqkm": 7.724386422300307,
+    "wetland_pct": 6.421928093175509,
+    "slope_deg": 6.16595828829197,
+    "builtup_pct": 4.243002547449244,
+    "wasteland_builtup_pct": 4.132963085361558
+  },
+  "outlier_summary": [
+    {
+      "feature": "population_density_per_sqkm",
+      "outliers": 22,
+      "lower": 302.0,
+      "upper": 318.0
+    },
+    {
+      "feature": "terrain_flatness_score",
+      "outliers": 11,
+      "lower": 0.16922429445222792,
+      "upper": 0.4162647760794724
+    },
+    {
+      "feature": "wetland_pct",
+      "outliers": 9,
+      "lower": 0.0,
+      "upper": 0.0
+    },
+    {
+      "feature": "slope_deg",
+      "outliers": 8,
+      "lower": 0.9949999999999999,
+      "upper": 3.915
+    },
+    {
+      "feature": "builtup_pct",
+      "outliers": 8,
+      "lower": -3.941250000000001,
+      "upper": 8.048750000000002
+    },
+    {
+      "feature": "water_pct",
+      "outliers": 7,
+      "lower": -1.7424999999999997,
+      "upper": 2.9574999999999996
+    },
+    {
+      "feature": "forest_proximity_km",
+      "outliers": 6,
+      "lower": -16.4693862333027,
+      "upper": 36.77238804250263
+    },
+    {
+      "feature": "wasteland_pct",
+      "outliers": 6,
+      "lower": -0.9687499999999998,
+      "upper": 1.7212499999999997
+    },
+    {
+      "feature": "wasteland_builtup_pct",
+      "outliers": 6,
+      "lower": -5.231250000000002,
+      "upper": 11.318750000000001
+    },
+    {
+      "feature": "grassland_pct",
+      "outliers": 5,
+      "lower": -13.110000000000003,
+      "upper": 27.570000000000004
+    }
+  ],
+  "leakage": {
+    "train_test_overlap_districts": [],
+    "train_test_overlap_count": 0,
+    "suspected_leakage_features": [],
+    "scaling_params_columns": [
+      "feature",
+      "mean",
+      "scale"
+    ],
+    "scaling_params_shape": [
+      39,
+      3
+    ]
+  }
+}

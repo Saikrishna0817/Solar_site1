@@ -1,0 +1,54 @@
+# ── Python ─────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+.eggs/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Back-end IDE & editor caches
+backend/**/__pycache__/
+backend/**/.pytest_cache/
+tests/__pycache__/
+
+# ── Environment & secrets ─────────────────────────────────────
+.env
+.env.*
+*.pem
+credentials.json
+earthengine-credentials/
+
+# ── Generated outputs ────────────────────────────────────────────
+backend/data_pipeline/outputs/processed/
+backend/data_pipeline/outputs/reports/
+backend/data_pipeline/pipeline.log
+
+# Raw shapefile cache (GEE downloads)
+backend/data_pipeline/outputs/raw/shapefiles/gadm41*
+
+# ── Logs ─────────────────────────────────────────────────────────
+*.log
+
+# ── Cache ───────────────────────────────────────────────────────
+cache/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# ── OS-specific ─────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── Front-end ──────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+
+# ── Build artifacts ────────────────────────────────────────────
+build/
+dist/

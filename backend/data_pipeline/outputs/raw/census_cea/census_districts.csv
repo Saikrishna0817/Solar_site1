@@ -1,0 +1,61 @@
+district,state,pop_2011,pop_2024_projected,area_sqkm,population_density_per_sqkm,source
+Adilabad,Telangana,708952.0,806853,16105,50.1,Census 2011 + 1%/yr compound growth × 13yr
+Hyderabad,Telangana,3943323.0,4487869,217,20681.4,Census 2011 + 1%/yr compound growth × 13yr
+Karimnagar,Telangana,1005711.0,1144592,11823,96.8,Census 2011 + 1%/yr compound growth × 13yr
+Khammam,Telangana,796583.0,906585,16029,56.6,Census 2011 + 1%/yr compound growth × 13yr
+Mahabubnagar,Telangana,1063302.0,1210136,18432,65.7,Census 2011 + 1%/yr compound growth × 13yr
+Medak,Telangana,757273.0,861847,9699,88.9,Census 2011 + 1%/yr compound growth × 13yr
+Nalgonda,Telangana,994451.0,1131778,14240,79.5,Census 2011 + 1%/yr compound growth × 13yr
+Nizamabad,Telangana,1054906.0,1200581,7956,150.9,Census 2011 + 1%/yr compound growth × 13yr
+Ranga Reddy,Telangana,1395438.0,1588138,7493,211.9,Census 2011 + 1%/yr compound growth × 13yr
+Warangal,Telangana,1351966.0,1538663,12846,119.8,Census 2011 + 1%/yr compound growth × 13yr
+Anantapuram,Andhra Pradesh,4083315.0,4647193,19130,242.9,Census 2011 + 1%/yr compound growth × 13yr
+Chittoor,Andhra Pradesh,4170374.0,4746274,15152,313.2,Census 2011 + 1%/yr compound growth × 13yr
+East Godavari,Andhra Pradesh,5138296.0,5847860,10807,541.1,Census 2011 + 1%/yr compound growth × 13yr
+Guntur,Andhra Pradesh,4887813.0,5562787,11391,488.3,Census 2011 + 1%/yr compound growth × 13yr
+Krishna,Andhra Pradesh,4529009.0,5154434,8727,590.6,Census 2011 + 1%/yr compound growth × 13yr
+Kurnool,Andhra Pradesh,4053463.0,4613219,17658,261.3,Census 2011 + 1%/yr compound growth × 13yr
+Sri Potti Sriramulu Nellore,Andhra Pradesh,2884524.0,3282857,13076,251.1,Census 2011 + 1%/yr compound growth × 13yr
+Prakasam,Andhra Pradesh,3397448.0,3866612,17626,219.4,Census 2011 + 1%/yr compound growth × 13yr
+Srikakulam,Andhra Pradesh,2699471.0,3072249,5837,526.3,Census 2011 + 1%/yr compound growth × 13yr
+Visakhapatnam,Andhra Pradesh,4294059.0,4887039,11161,437.9,Census 2011 + 1%/yr compound growth × 13yr
+Vizianagaram,Andhra Pradesh,2342868.0,2666402,6539,407.8,Census 2011 + 1%/yr compound growth × 13yr
+West Godavari,Andhra Pradesh,3934782.0,4478148,7742,578.4,Census 2011 + 1%/yr compound growth × 13yr
+YSR Kadapa,Andhra Pradesh,2884524.0,3282857,15359,213.7,Census 2011 + 1%/yr compound growth × 13yr
+Hanumakonda,Telangana,,408408,1309,312.0,Est. from Telangana avg density × area
+Medchal-Malkajgiri,Telangana,,338208,1084,312.0,Est. from Telangana avg density × area
+Sangareddy,Telangana,,1392768,4464,312.0,Est. from Telangana avg density × area
+Siddipet,Telangana,,1133184,3632,312.0,Est. from Telangana avg density × area
+Jogulamba Gadwal,Telangana,,913536,2928,312.0,Est. from Telangana avg density × area
+Jangaon,Telangana,,682656,2188,312.0,Est. from Telangana avg density × area
+Vikarabad,Telangana,,1056432,3386,312.0,Est. from Telangana avg density × area
+Mancherial,Telangana,,1265472,4056,312.0,Est. from Telangana avg density × area
+Kumuram Bheem Asifabad,Telangana,,1522248,4879,312.0,Est. from Telangana avg density × area
+Nirmal,Telangana,,1199640,3845,312.0,Est. from Telangana avg density × area
+Peddapalli,Telangana,,697632,2236,312.0,Est. from Telangana avg density × area
+Jagtial,Telangana,,754728,2419,312.0,Est. from Telangana avg density × area
+Rajanna Sircilla,Telangana,,627120,2010,312.0,Est. from Telangana avg density × area
+Bhadradri Kothagudem,Telangana,,2334696,7483,312.0,Est. from Telangana avg density × area
+Jayashankar Bhupalapally,Telangana,,1926600,6175,312.0,Est. from Telangana avg density × area
+Mahabubabad,Telangana,,897624,2877,312.0,Est. from Telangana avg density × area
+Suryapet,Telangana,,1125384,3607,312.0,Est. from Telangana avg density × area
+Nagarkurnool,Telangana,,1903824,6102,312.0,Est. from Telangana avg density × area
+Wanaparthy,Telangana,,768144,2462,312.0,Est. from Telangana avg density × area
+Yadadri Bhuvanagiri,Telangana,,964392,3091,312.0,Est. from Telangana avg density × area
+Kamareddy,Telangana,,1139424,3652,312.0,Est. from Telangana avg density × area
+Mulugu,Telangana,,1210872,3881,312.0,Est. from Telangana avg density × area
+Narayanpet,Telangana,,655200,2100,312.0,Est. from Telangana avg density × area
+Alluri Sitharama Raju,Andhra Pradesh,,3773308,12251,308.0,Est. from Andhra Pradesh avg density × area
+Anakapalli,Andhra Pradesh,,1322244,4293,308.0,Est. from Andhra Pradesh avg density × area
+Dr. B. R. Ambedkar Konaseema,Andhra Pradesh,,641564,2083,308.0,Est. from Andhra Pradesh avg density × area
+Kakinada,Andhra Pradesh,,929852,3019,308.0,Est. from Andhra Pradesh avg density × area
+Eluru,Andhra Pradesh,,2064216,6702,308.0,Est. from Andhra Pradesh avg density × area
+NTR,Andhra Pradesh,,1017940,3305,308.0,Est. from Andhra Pradesh avg density × area
+Bapatla,Andhra Pradesh,,1179332,3829,308.0,Est. from Andhra Pradesh avg density × area
+Palnadu,Andhra Pradesh,,2247784,7298,308.0,Est. from Andhra Pradesh avg density × area
+Nandyal,Andhra Pradesh,,2982056,9682,308.0,Est. from Andhra Pradesh avg density × area
+Sri Sathya Sai,Andhra Pradesh,,2748900,8925,308.0,Est. from Andhra Pradesh avg density × area
+Tirupati,Andhra Pradesh,,2535148,8231,308.0,Est. from Andhra Pradesh avg density × area
+Annamayya,Andhra Pradesh,,2449832,7954,308.0,Est. from Andhra Pradesh avg density × area
+Parvathipuram Manyam,Andhra Pradesh,,1126972,3659,308.0,Est. from Andhra Pradesh avg density × area
+Markapuram,Andhra Pradesh,,646800,2100,308.0,Est. from Andhra Pradesh avg density × area
