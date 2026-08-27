@@ -175,8 +175,42 @@ def compute_cuf_theoretical(ghi: float, temp_c: float) -> float:
 
     Result clamped to [0.65, 0.85] before CUF computation.
     Reference: IEC 61724, typical c-Si temp coefficient.
+
+    DEPRECATED: Use load_real_cuf() for training with actual plant CUF data.
+    This physics formula produces near-deterministic CUF (R² > 0.99 with GHI).
+    It is retained for fallback / inference on locations without real CUF data.
     """
     t_cell = temp_c + 25.0
     pr = 0.80 - 0.0045 * max(0, t_cell - 25.0)
     pr = max(0.65, min(0.85, pr))
     return round(ghi * pr / 24.0, 4)
+
+
+def load_real_cuf(cuf_csv_path: str = None) -> "pd.DataFrame":
+    """
+    Load real solar plant CUF data for use as training target.
+
+    Replaces the physics-derived CUF with actual plant-level CUF from
+    CEA monthly generation reports. Returns a DataFrame with columns:
+    plant_name, state, district, latitude, longitude, installed_capacity_mw,
+    annual_cuf, annual_generation_mu.
+
+    If no path is provided, looks for the default dataset at:
+        data/plant_cuf/solar_plants_india.csv
+    """
+    if cuf_csv_path is None:
+        cuf_csv_path = str(
+            Path(__file__).resolve().parents[4] / "data" / "plant_cuf" / "solar_plants_india.csv"
+        )
+    cuf_path = Path(cuf_csv_path)
+    if not cuf_path.exists():
+        raise FileNotFoundError(
+            f"Real CUF dataset not found at {cuf_path}. "
+            "Run: python scripts/generate_plant_centroids.py first."
+        )
+    import pandas as pd
+
+    cuf_df = pd.read_csv(cuf_path)
+    cuf_df["district"] = cuf_df["district"].str.strip().str.lower()
+    cuf_df["state"] = cuf_df["state"].str.strip()
+    return cuf_df

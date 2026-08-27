@@ -179,28 +179,59 @@ def merge_sources() -> Optional[pd.DataFrame]:
             logger.warning("Source '%s': %d/%d districts have missing columns.",
                            src_name, incomplete, len(merged))
 
-    # ── Compute district-level CUF ──────────────────────────
-    if "avg_ghi_kwh_m2_day" in merged.columns and "avg_temp_c" in merged.columns:
-        # Flag rows that lack solar or temperature data before computing CUF
-        missing_solar = merged["avg_ghi_kwh_m2_day"].isna() | merged["avg_temp_c"].isna()
-        if missing_solar.any():
-            bad = merged.loc[missing_solar, "district"].tolist()
-            logger.error("CUF input columns contain NaN for districts: %s", bad)
-            return None
-        merged["cuf"] = merged.apply(
-            lambda r: compute_cuf_theoretical(r["avg_ghi_kwh_m2_day"], r["avg_temp_c"]),
-            axis=1,
-        )
-        # Sanity check computed CUF values
-        if merged["cuf"].isna().any():
-            bad = merged.loc[merged["cuf"].isna(), "district"].tolist()
-            logger.error("Computed CUF is NaN for districts: %s", bad)
-            return None
-        logger.info("District-level CUF computed: min=%.4f  max=%.4f  mean=%.4f",
-                    merged["cuf"].min(), merged["cuf"].max(), merged["cuf"].mean())
+    # ── Compute / Load CUF ──────────────────────────────────
+    # Priority 1: Real plant CUF data (Option B — genuine ML target)
+    # Priority 2: Physics formula (fallback for districts without plant data)
+    real_cuf_path = (
+        Path(__file__).resolve().parents[4] / "data" / "plant_cuf" / "solar_plants_india.csv"
+    )
+    if real_cuf_path.exists():
+        logger.info("Loading real plant CUF data for ML training target ...")
+        from solarpipeline.utils import load_real_cuf
+        try:
+            cuf_df = load_real_cuf(str(real_cuf_path))
+            real_districts = set(cuf_df["district"])
+            merged["cuf_real"] = None
+            for idx, row in merged.iterrows():
+                match = cuf_df[cuf_df["district"] == str(row.get("district", "")).strip().lower()]
+                if not match.empty:
+                    merged.at[idx, "cuf"] = match.iloc[0]["annual_cuf"]
+                    merged.at[idx, "cuf_source"] = "cea_plant"
+                else:
+                    merged.at[idx, "cuf"] = compute_cuf_theoretical(
+                        row["avg_ghi_kwh_m2_day"], row["avg_temp_c"]
+                    )
+                    merged.at[idx, "cuf_source"] = "physics"
+            plant_count = (merged.get("cuf_source") == "cea_plant").sum()
+            phys_count = (merged.get("cuf_source") == "physics").sum()
+            logger.info("CUF source: %d real plants + %d physics-fallback (total %d)",
+                        plant_count, phys_count, len(merged))
+        except Exception as exc:
+            logger.warning("Real CUF load failed: %s — falling back to physics formula", exc)
     else:
-        logger.error("Cannot compute CUF -- required columns missing.")
+        logger.info("Real CUF dataset not found — using physics formula (fallback).")
+
+    if "cuf" not in merged.columns or merged["cuf"].isna().all():
+        if "avg_ghi_kwh_m2_day" in merged.columns and "avg_temp_c" in merged.columns:
+            missing_solar = merged["avg_ghi_kwh_m2_day"].isna() | merged["avg_temp_c"].isna()
+            if missing_solar.any():
+                bad = merged.loc[missing_solar, "district"].tolist()
+                logger.error("CUF input columns contain NaN for districts: %s", bad)
+                return None
+            merged["cuf"] = merged.apply(
+                lambda r: compute_cuf_theoretical(r["avg_ghi_kwh_m2_day"], r["avg_temp_c"]),
+                axis=1,
+            )
+        else:
+            logger.error("Cannot compute CUF -- required columns missing.")
+            return None
+
+    if merged["cuf"].isna().any():
+        bad = merged.loc[merged["cuf"].isna(), "district"].tolist()
+        logger.error("Computed CUF is NaN for districts: %s", bad)
         return None
+    logger.info("CUF: min=%.4f  max=%.4f  mean=%.4f",
+                merged["cuf"].min(), merged["cuf"].max(), merged["cuf"].mean())
 
     logger.info("Merged dataset: %d rows x %d cols", len(merged), len(merged.columns))
     if len(merged) != CONFIG.expected_districts:

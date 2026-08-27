@@ -8,6 +8,7 @@ import ScatterPlot from '../components/charts/ScatterPlot';
 import SHAPWaterfall from '../components/charts/SHAPWaterfall';
 import { enrichedSites } from '../data/mockSites';
 import stateData from '../data/stateData';
+import { KEY_METRICS } from '../data/constants';
 import { CHART_COLORS, getSuitabilityColor } from '../data/constants';
 import { formatCapacity, formatScore } from '../utils/formatters';
 
@@ -29,10 +30,10 @@ const Results = () => {
   const [expandedCase, setExpandedCase] = useState(null);
 
   const metrics = [
-    { label: 'R² Score', value: 0.88, dec: 2, desc: 'Variance explained', color: '#10B981' },
-    { label: 'MAPE', value: 11.5, dec: 1, suffix: '%', desc: 'Mean Abs % Error', color: '#F5A623' },
-    { label: 'RMSE', value: 0.065, dec: 3, desc: 'Root Mean Sq Error', color: '#06B6D4' },
-    { label: 'MAE', value: 0.052, dec: 3, desc: 'Mean Abs Error', color: '#8B5CF6' },
+    { label: 'Plants Tracked', value: KEY_METRICS.sitesAnalyzed, dec: 0, desc: 'Operational solar plants (CEA)', color: '#10B981' },
+    { label: 'Districts', value: KEY_METRICS.districtsAnalyzed, dec: 0, desc: 'GADM all-India centroids', color: '#F5A623' },
+    { label: 'Features', value: KEY_METRICS.featuresUsed, dec: 0, desc: 'Raw + engineered features', color: '#06B6D4' },
+    { label: 'Solar Capacity', value: KEY_METRICS.totalCapacityGW, dec: 2, suffix: ' GW', desc: 'MNRE national total (31.07.2026)', color: '#8B5CF6' },
   ];
 
   const stateChart = useMemo(() => [...stateData].sort((a, b) => b.potentialGW - a.potentialGW).slice(0, 12), []);
@@ -61,15 +62,15 @@ const Results = () => {
     { id: 2, title: 'Mahbubnagar, Telangana', sub: 'Emerging Solar Hub — Discovery', state: 'Telangana', score: 0.83, cap: '100 MW',
       finding: 'Model identified Mahbubnagar as Telangana\'s top solar location, aligning with TSREDCO solar park proposals.',
       details: 'GHI: 5.38 | DNI: 5.08 | Elevation: 440m | Grid: 10km | LCOE: ₹2.42/kWh' },
-    { id: 3, title: '500 GW Target Assessment', sub: 'National Policy Scenario', state: 'Pan-India', score: null, cap: '556 GW',
-      finding: 'India has ~556 GW utility-scale potential across 20,780 sites, exceeding the 500 GW target. Top: Rajasthan (142), Gujarat (72), AP (56).',
-      details: '20 states | 30K+ screened | 20,780 suitable | Avg GHI: 5.12 | 15.9% installed' },
+    { id: 3, title: '500 GW Target Assessment', sub: 'National Policy Scenario', state: 'Pan-India', score: null, cap: '3,343 GWp',
+      finding: 'India has 3,343 GWp deployable ground-mounted solar potential (NISE 2025) across 27,571 km², exceeding the 500 GW target. Top: Rajasthan (829 GW), Maharashtra (487 GW), Madhya Pradesh (319 GW).',
+      details: 'NISE 2025 report | 27,571 km² feasible | 6.69% wasteland used | 3,343 GWp total potential | 32.9% installed (164.6 GW solar)' },
   ];
 
   return (
     <div className="min-h-screen pt-24 pb-16 bg-space-deep">
       <div className="container-custom">
-        <SectionTitle title="Results & Analysis" subtitle="Key findings from our ML ensemble model trained on 127 operational solar plants" />
+        <SectionTitle title="Results & Analysis" subtitle={`Key findings from our weighted composite index and Ridge regression model trained on ${KEY_METRICS.sitesAnalyzed} operational solar plants (CEA/MNRE data)`} />
 
         {/* Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-16">
@@ -90,7 +91,7 @@ const Results = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-16">
           <GlassCard hover={false}>
             <h3 className="font-display font-semibold text-txt-primary text-lg mb-2">Predicted vs Actual Suitability</h3>
-            <p className="text-txt-dim text-sm mb-4">Points near the diagonal = accurate predictions (R² = 0.88)</p>
+            <p className="text-txt-dim text-sm mb-4">Model validation on holdout set — training on {KEY_METRICS.sitesAnalyzed} real plant CUF targets (CEA data)</p>
             <ScatterPlot />
           </GlassCard>
           <GlassCard hover={false}>
@@ -119,7 +120,7 @@ const Results = () => {
         </GlassCard>
 
         {/* Top Sites Table */}
-        <SectionTitle title="Top Ranked Sites" subtitle="Highest scoring solar sites identified by the ML model" gradient="solar" />
+        <SectionTitle title="Top Ranked Sites" subtitle="Highest scoring solar sites identified by the weighted composite index" gradient="solar" />
         <GlassCard hover={false} className="mb-16 overflow-x-auto">
           <div className="flex items-center gap-4 mb-4">
             <span className="text-txt-dim text-sm">Sort:</span>

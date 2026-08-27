@@ -1,13 +1,23 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-const Particles = ({ count = 500 }) => {
-  const mesh = useRef();
+const isWebGLAvailable = () => {
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+  } catch (e) {
+    return false;
+  }
+};
 
-  const { positions, velocities, colors } = useMemo(() => {
+const Particles = ({ count = 400 }) => {
+  const meshRef = useRef();
+
+  const { geometry, velocities } = useMemo(() => {
+    const geo = new THREE.BufferGeometry();
     const positions = new Float32Array(count * 3);
-    const velocities = new Float32Array(count * 3);
+    const vels = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
 
     const goldColor = new THREE.Color('#F5A623');
@@ -20,43 +30,41 @@ const Particles = ({ count = 500 }) => {
       positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
       positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
 
-      velocities[i * 3] = (Math.random() - 0.5) * 0.005;
-      velocities[i * 3 + 1] = Math.random() * 0.01 + 0.002;
-      velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.002;
+      vels[i * 3] = (Math.random() - 0.5) * 0.005;
+      vels[i * 3 + 1] = Math.random() * 0.01 + 0.002;
+      vels[i * 3 + 2] = (Math.random() - 0.5) * 0.002;
 
       const color = colorOptions[Math.floor(Math.random() * colorOptions.length)];
       colors[i * 3] = color.r;
       colors[i * 3 + 1] = color.g;
       colors[i * 3 + 2] = color.b;
     }
-    return { positions, velocities, colors };
+
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    return { geometry: geo, velocities: vels };
   }, [count]);
 
   useFrame(() => {
-    if (!mesh.current) return;
-    const posArray = mesh.current.geometry.attributes.position.array;
+    if (!meshRef.current) return;
+    const posArray = meshRef.current.geometry.attributes.position.array;
 
     for (let i = 0; i < count; i++) {
       posArray[i * 3] += velocities[i * 3];
       posArray[i * 3 + 1] += velocities[i * 3 + 1];
       posArray[i * 3 + 2] += velocities[i * 3 + 2];
 
-      // Reset particles that go too far
       if (posArray[i * 3 + 1] > 10) {
         posArray[i * 3] = (Math.random() - 0.5) * 20;
         posArray[i * 3 + 1] = -10;
         posArray[i * 3 + 2] = (Math.random() - 0.5) * 10;
       }
     }
-    mesh.current.geometry.attributes.position.needsUpdate = true;
+    meshRef.current.geometry.attributes.position.needsUpdate = true;
   });
 
   return (
-    <points ref={mesh}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
-        <bufferAttribute attach="attributes-color" count={count} array={colors} itemSize={3} />
-      </bufferGeometry>
+    <points ref={meshRef} geometry={geometry}>
       <pointsMaterial
         size={0.04}
         vertexColors
@@ -71,12 +79,23 @@ const Particles = ({ count = 500 }) => {
 };
 
 const ParticleField = ({ className = '' }) => {
+  const [webglAvailable, setWebglAvailable] = useState(true);
+
+  useEffect(() => {
+    setWebglAvailable(isWebGLAvailable());
+  }, []);
+
+  if (!webglAvailable) return null;
+
   return (
     <div className={`absolute inset-0 pointer-events-none ${className}`}>
       <Canvas
         camera={{ position: [0, 0, 5], fov: 60 }}
-        gl={{ antialias: false, alpha: true }}
+        gl={{ antialias: false, alpha: true, powerPreference: 'default' }}
         style={{ background: 'transparent' }}
+        onCreated={({ gl }) => {
+          gl.setClearColor(0x000000, 0);
+        }}
       >
         <Particles count={400} />
       </Canvas>

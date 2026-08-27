@@ -1,0 +1,211 @@
+district,state,latitude,longitude
+anantapur,Andhra Pradesh,14.6819,77.6006
+chittoor,Andhra Pradesh,13.2171,79.1003
+east godavari,Andhra Pradesh,17.05,81.8
+guntur,Andhra Pradesh,16.3008,80.442
+krishna,Andhra Pradesh,16.1833,81.1333
+kurnool,Andhra Pradesh,15.8281,78.0373
+nellore,Andhra Pradesh,14.4426,79.9865
+prakasam,Andhra Pradesh,15.5,80.0
+srikakulam,Andhra Pradesh,18.3,83.9
+visakhapatnam,Andhra Pradesh,17.6868,83.2185
+vizianagaram,Andhra Pradesh,18.1167,83.4167
+west godavari,Andhra Pradesh,16.6667,81.5
+kadapa,Andhra Pradesh,14.4747,78.8242
+adilabad,Telangana,19.664,78.532
+hyderabad,Telangana,17.385,78.4867
+karimnagar,Telangana,18.4386,79.1288
+khammam,Telangana,17.2473,80.1514
+mahabubnagar,Telangana,16.7488,77.9855
+medak,Telangana,18.0462,78.2624
+nalgonda,Telangana,17.0575,79.2672
+nizamabad,Telangana,18.6725,78.094
+rangareddy,Telangana,17.35,78.35
+warangal,Telangana,17.9784,79.5941
+siddipet,Telangana,18.1,78.85
+sangareddy,Telangana,17.6294,78.0917
+nalgonda,Telangana,17.05,79.27
+jagtial,Telangana,18.7947,78.9158
+peddapalli,Telangana,18.6167,79.3833
+mancherial,Telangana,18.8713,79.4543
+suryapet,Telangana,17.1414,79.6236
+mahabubabad,Telangana,17.6,80.0
+bhadradri kothagudem,Telangana,17.55,80.62
+nagarkurnool,Telangana,16.4833,78.3167
+wanaparthy,Telangana,16.3667,78.0667
+jogulamba gadwal,Telangana,16.2333,77.8
+vikarabad,Telangana,17.3333,77.9
+kamareddy,Telangana,18.3167,78.35
+nirmal,Telangana,19.1,78.35
+kumuram bheem asifabad,Telangana,19.3667,79.4833
+rajanna sircilla,Telangana,18.3833,78.8333
+jangaon,Telangana,17.7167,79.1833
+jayashankar bhupalapally,Telangana,18.3167,79.9667
+mulugu,Telangana,18.1833,79.95
+narayanpet,Telangana,16.7333,77.5
+yadadri bhuvanagiri,Telangana,17.4833,79.0667
+hanumakonda,Telangana,18.0167,79.6
+tumkur,Karnataka,14.1014,77.281
+raichur,Karnataka,16.212,77.3439
+bellary,Karnataka,15.1394,76.9214
+koppal,Karnataka,15.3481,76.1537
+gadag,Karnataka,15.4318,75.6375
+chitradurga,Karnataka,14.2312,76.3983
+bagalkot,Karnataka,16.1767,75.6969
+bangalore urban,Karnataka,12.9716,77.5946
+belagavi,Karnataka,15.85,74.5
+bidar,Karnataka,17.9133,77.53
+chamarajanagar,Karnataka,11.9237,76.948
+chikkaballapur,Karnataka,13.435,77.7317
+chikkamagaluru,Karnataka,13.315,75.775
+dakshina kannada,Karnataka,12.87,74.88
+davanagere,Karnataka,14.4667,75.9167
+dharwad,Karnataka,15.45,75.0
+hassan,Karnataka,13.0,76.1
+haveri,Karnataka,14.8,75.4
+kalaburagi,Karnataka,17.3333,76.8333
+kodagu,Karnataka,12.4167,75.7333
+mandya,Karnataka,12.5167,76.9
+mysuru,Karnataka,12.3,76.65
+shivamogga,Karnataka,13.9333,75.5667
+udupi,Karnataka,13.3333,74.75
+uttara kannada,Karnataka,14.6,74.7
+vijayanagara,Karnataka,15.27,76.39
+yadgir,Karnataka,16.77,77.137
+dhule,Maharashtra,20.9874,73.993
+latur,Maharashtra,18.4088,76.5604
+solapur,Maharashtra,17.6599,75.9064
+jalna,Maharashtra,19.84,75.886
+aurangabad,Maharashtra,19.8762,75.3433
+osmanabad,Maharashtra,18.1815,76.039
+pune,Maharashtra,18.5204,73.8567
+nagpur,Maharashtra,21.1458,79.0882
+nashik,Maharashtra,19.9975,73.7898
+mumbai,Maharashtra,19.076,72.8777
+ahmednagar,Maharashtra,19.095,74.733
+akola,Maharashtra,20.703,77.002
+amravati,Maharashtra,20.9333,77.75
+beed,Maharashtra,18.9833,75.7667
+bhandara,Maharashtra,21.1667,79.65
+buldhana,Maharashtra,20.5333,76.1833
+chandrapur,Maharashtra,19.95,79.3
+gadchiroli,Maharashtra,20.1833,80.0
+gondia,Maharashtra,21.45,80.2
+hingoli,Maharashtra,19.7167,77.15
+jalgaon,Maharashtra,21.0167,75.5667
+kolhapur,Maharashtra,16.7,74.2333
+nanded,Maharashtra,19.1667,77.3167
+nandurbar,Maharashtra,21.3667,74.25
+palghar,Maharashtra,19.7,72.7667
+parbhani,Maharashtra,19.2667,76.7833
+raigad,Maharashtra,18.5167,73.85
+ratnagiri,Maharashtra,16.9944,73.3
+sangli,Maharashtra,16.8667,74.5667
+satara,Maharashtra,17.6833,74.0
+sindhudurg,Maharashtra,16.1,73.7
+thane,Maharashtra,19.2,72.9667
+wardha,Maharashtra,20.75,78.6167
+washim,Maharashtra,20.1,77.15
+yavatmal,Maharashtra,20.4,78.1333
+patan,Gujarat,23.8991,71.2005
+kutch,Gujarat,23.7337,69.8597
+banaskantha,Gujarat,24.1705,72.4367
+ahmedabad,Gujarat,22.2481,72.193
+surendranagar,Gujarat,22.7231,71.6485
+morbi,Gujarat,22.8183,70.8332
+rajkot,Gujarat,22.3039,70.8022
+surat,Gujarat,21.1702,72.8311
+vadodara,Gujarat,22.3072,73.1812
+bhavnagar,Gujarat,21.7645,72.15
+jamnagar,Gujarat,22.4707,70.0577
+junagadh,Gujarat,21.5222,70.4579
+amreli,Gujarat,21.6,71.2167
+anand,Gujarat,22.5667,72.9333
+aravalli,Gujarat,23.8333,73.25
+bharuch,Gujarat,21.7,72.9667
+botad,Gujarat,22.1667,71.6667
+chhota udaipur,Gujarat,22.3167,74.0167
+dahod,Gujarat,22.8333,74.25
+dang,Gujarat,20.9333,73.6667
+devbhoomi dwarka,Gujarat,22.2,69.0667
+gandhinagar,Gujarat,23.2167,72.6833
+gir somnath,Gujarat,20.9167,70.3667
+kheda,Gujarat,22.75,72.6833
+mahisagar,Gujarat,23.1667,73.65
+mehsana,Gujarat,23.6,72.4
+narmada,Gujarat,21.7333,73.5
+navsari,Gujarat,20.9333,72.9167
+panchmahal,Gujarat,22.75,73.6
+porbandar,Gujarat,21.6333,69.6
+sabarkantha,Gujarat,23.6333,73.0
+tapi,Gujarat,21.1833,73.4
+valsad,Gujarat,20.6167,72.9333
+jodhpur,Rajasthan,27.5394,71.9101
+jaisalmer,Rajasthan,26.9157,70.9083
+barmer,Rajasthan,25.7521,71.3967
+bikaner,Rajasthan,28.0229,73.3119
+churu,Rajasthan,28.302,74.967
+ajmer,Rajasthan,26.4499,74.6399
+alwar,Rajasthan,27.5667,76.6167
+banswara,Rajasthan,23.55,74.45
+baran,Rajasthan,25.1,76.5167
+bharatpur,Rajasthan,27.217,77.49
+bhilwara,Rajasthan,25.35,74.6333
+bundi,Rajasthan,25.4333,75.65
+chittorgarh,Rajasthan,24.8833,74.6333
+dausa,Rajasthan,26.8833,76.3333
+dholpur,Rajasthan,26.7,77.9
+dungarpur,Rajasthan,23.8333,73.7167
+hanumangarh,Rajasthan,29.5833,74.3167
+jaipur,Rajasthan,26.9124,75.7873
+jhalawar,Rajasthan,24.6,76.15
+jhunjhunu,Rajasthan,28.1333,75.4
+jodhpur,Rajasthan,27.5394,71.9101
+karauli,Rajasthan,26.5,77.0167
+kota,Rajasthan,25.1833,75.8333
+nagaur,Rajasthan,27.2,73.7333
+pali,Rajasthan,25.7833,73.3333
+pratapgarh,Rajasthan,24.0333,74.7833
+rajasamand,Rajasthan,25.0667,73.8833
+sawai madhopur,Rajasthan,26.0167,76.35
+sikar,Rajasthan,27.6167,75.15
+sirohi,Rajasthan,24.8833,72.8667
+sri ganganagar,Rajasthan,29.9167,73.8833
+tonk,Rajasthan,26.1667,75.7833
+udaipur,Rajasthan,24.5833,73.6833
+ramanathapuram,Tamil Nadu,9.3762,78.8308
+sivaganga,Tamil Nadu,10.1263,78.5093
+tirunelveli,Tamil Nadu,8.7139,77.7567
+thoothukudi,Tamil Nadu,8.7642,78.1348
+virudhunagar,Tamil Nadu,9.581,77.958
+coimbatore,Tamil Nadu,11.0168,76.9558
+chennai,Tamil Nadu,13.0827,80.2707
+ariyalur,Tamil Nadu,11.1333,79.0833
+chengalpattu,Tamil Nadu,12.6833,79.9833
+cuddalore,Tamil Nadu,11.75,79.75
+dharmapuri,Tamil Nadu,12.1333,78.1667
+dindigul,Tamil Nadu,10.35,77.95
+erode,Tamil Nadu,11.35,77.7333
+kallakurichi,Tamil Nadu,11.7333,79.0
+kanchipuram,Tamil Nadu,12.8333,79.7167
+kanyakumari,Tamil Nadu,8.0833,77.55
+karur,Tamil Nadu,10.95,78.0833
+krishnagiri,Tamil Nadu,12.5333,78.2167
+madurai,Tamil Nadu,9.9333,78.1167
+mayiladuthurai,Tamil Nadu,11.1,79.65
+nagapattinam,Tamil Nadu,10.7667,79.8333
+namakkal,Tamil Nadu,11.2333,78.1667
+nilgiris,Tamil Nadu,11.4167,76.6833
+perambalur,Tamil Nadu,11.2333,78.8833
+pudukkottai,Tamil Nadu,10.3833,78.8167
+ranipet,Tamil Nadu,12.9333,79.3333
+salem,Tamil Nadu,11.65,78.15
+tenkasi,Tamil Nadu,8.9667,77.3
+thanjavur,Tamil Nadu,10.7833,79.1333
+theni,Tamil Nadu,10.0167,77.4667
+tirupathur,Tamil Nadu,12.5,78.6
+tiruppur,Tamil Nadu,11.1,77.35
+tiruvallur,Tamil Nadu,13.15,80.0167
+tiruvarur,Tamil Nadu,10.7667,79.6333
+vellore,Tamil Nadu,12.9167,79.1333
+viluppuram,Tamil Nadu,11.9333,79.4833

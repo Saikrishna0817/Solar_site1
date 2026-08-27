@@ -1,7 +1,16 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Sphere, Stars } from '@react-three/drei';
+import { OrbitControls, Stars } from '@react-three/drei';
 import * as THREE from 'three';
+
+const isWebGLAvailable = () => {
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+  } catch (e) {
+    return false;
+  }
+};
 
 const EnergyOrb = () => {
   const meshRef = useRef();
@@ -62,18 +71,13 @@ const EnergyOrb = () => {
 
   return (
     <group>
-      {/* Main sphere */}
       <mesh ref={meshRef} material={gradientMaterial}>
         <sphereGeometry args={[2, 64, 64]} />
       </mesh>
-
-      {/* Glow */}
       <mesh ref={glowRef} scale={2.15}>
         <sphereGeometry args={[1, 32, 32]} />
         <meshBasicMaterial color="#F5A623" transparent opacity={0.06} />
       </mesh>
-
-      {/* Orbit ring */}
       <mesh rotation={[Math.PI / 2.5, 0, 0]}>
         <torusGeometry args={[2.8, 0.01, 16, 100]} />
         <meshBasicMaterial color="#06B6D4" transparent opacity={0.3} />
@@ -87,36 +91,30 @@ const EnergyOrb = () => {
 };
 
 const FloatingParticles = () => {
-  const points = useRef();
+  const pointsRef = useRef();
   const count = 200;
 
-  const positions = useMemo(() => {
+  const { geometry, positions } = useMemo(() => {
+    const geo = new THREE.BufferGeometry();
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
       pos[i * 3] = (Math.random() - 0.5) * 12;
       pos[i * 3 + 1] = (Math.random() - 0.5) * 12;
       pos[i * 3 + 2] = (Math.random() - 0.5) * 12;
     }
-    return pos;
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    return { geometry: geo, positions: pos };
   }, []);
 
   useFrame(({ clock }) => {
-    if (points.current) {
-      points.current.rotation.y = clock.getElapsedTime() * 0.02;
-      points.current.rotation.x = Math.sin(clock.getElapsedTime() * 0.01) * 0.1;
+    if (pointsRef.current) {
+      pointsRef.current.rotation.y = clock.getElapsedTime() * 0.02;
+      pointsRef.current.rotation.x = Math.sin(clock.getElapsedTime() * 0.01) * 0.1;
     }
   });
 
   return (
-    <points ref={points}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={count}
-          array={positions}
-          itemSize={3}
-        />
-      </bufferGeometry>
+    <points ref={pointsRef} geometry={geometry}>
       <pointsMaterial
         size={0.03}
         color="#F5A623"
@@ -128,30 +126,53 @@ const FloatingParticles = () => {
   );
 };
 
+const GlobeCanvas = () => {
+  return (
+    <>
+      <ambientLight intensity={0.3} />
+      <pointLight position={[5, 5, 5]} intensity={1} color="#F5A623" />
+      <pointLight position={[-5, -3, 5]} intensity={0.5} color="#06B6D4" />
+      <EnergyOrb />
+      <FloatingParticles />
+      <Stars radius={20} depth={50} count={1500} factor={3} saturation={0.2} fade speed={0.5} />
+      <OrbitControls
+        enableZoom={false}
+        enablePan={false}
+        autoRotate
+        autoRotateSpeed={0.5}
+        maxPolarAngle={Math.PI / 1.5}
+        minPolarAngle={Math.PI / 3}
+      />
+    </>
+  );
+};
+
 const SolarGlobe = ({ className = '' }) => {
+  const [webglAvailable, setWebglAvailable] = useState(true);
+
+  useEffect(() => {
+    setWebglAvailable(isWebGLAvailable());
+  }, []);
+
+  if (!webglAvailable) {
+    return (
+      <div className={`w-full h-full flex items-center justify-center ${className}`}>
+        <div className="w-32 h-32 rounded-full bg-gradient-solar opacity-20 animate-pulse" />
+      </div>
+    );
+  }
+
   return (
     <div className={`w-full h-full ${className}`}>
       <Canvas
         camera={{ position: [0, 0, 6], fov: 50 }}
-        gl={{ antialias: true, alpha: true }}
+        gl={{ antialias: true, alpha: true, powerPreference: 'default' }}
         style={{ background: 'transparent' }}
+        onCreated={({ gl }) => {
+          gl.setClearColor(0x000000, 0);
+        }}
       >
-        <ambientLight intensity={0.3} />
-        <pointLight position={[5, 5, 5]} intensity={1} color="#F5A623" />
-        <pointLight position={[-5, -3, 5]} intensity={0.5} color="#06B6D4" />
-
-        <EnergyOrb />
-        <FloatingParticles />
-        <Stars radius={20} depth={50} count={1500} factor={3} saturation={0.2} fade speed={0.5} />
-
-        <OrbitControls
-          enableZoom={false}
-          enablePan={false}
-          autoRotate
-          autoRotateSpeed={0.5}
-          maxPolarAngle={Math.PI / 1.5}
-          minPolarAngle={Math.PI / 3}
-        />
+        <GlobeCanvas />
       </Canvas>
     </div>
   );

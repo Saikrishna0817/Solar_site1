@@ -1,13 +1,12 @@
-// API service layer with mock data toggle
-// Set USE_MOCK=false in .env to switch to live API calls
+// API service layer — toggles between mock data and live FastAPI backend
+// Set USE_MOCK=true for development without backend, false for live data
 
 import { enrichedSites } from '../data/mockSites';
 import stateData from '../data/stateData';
 
-const USE_MOCK = true; // Toggle for mock vs live API
+const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'; // Default: mock mode
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
-// Simulated API delay
 const delay = (ms = 300) => new Promise(resolve => setTimeout(resolve, ms));
 
 // ─── Mock Implementations ─────────────────────────────────
@@ -34,7 +33,6 @@ const mockApi = {
 
   async analyzeSite(lat, lng) {
     await delay(500);
-    // Find nearest mock site
     const nearest = enrichedSites.reduce((best, site) => {
       const dist = Math.sqrt(Math.pow(site.lat - lat, 2) + Math.pow(site.lng - lng, 2));
       const bestDist = Math.sqrt(Math.pow(best.lat - lat, 2) + Math.pow(best.lng - lng, 2));
@@ -47,35 +45,39 @@ const mockApi = {
 // ─── Live API Implementations ─────────────────────────────
 const liveApi = {
   async getSites(filters = {}) {
-    const params = new URLSearchParams(filters);
-    const res = await fetch(`${API_BASE}/utility/sites?${params}`);
-    if (!res.ok) throw new Error('Failed to fetch sites');
-    return res.json();
+    const params = new URLSearchParams();
+    if (filters.state) params.set('state', filters.state);
+    if (filters.minSuitability) params.set('min_suitability', filters.minSuitability);
+    if (filters.limit) params.set('limit', String(filters.limit || 200));
+    if (filters.searchQuery) params.set('search', filters.searchQuery);
+    const res = await fetch(`${API_BASE}/v1/sites?${params}`);
+    if (!res.ok) throw new Error(`Failed to fetch sites: ${res.status}`);
+    const data = await res.json();
+    return { data, total: data.length };
   },
 
   async getSiteById(id) {
-    const res = await fetch(`${API_BASE}/utility/site/${id}`);
-    if (!res.ok) throw new Error('Failed to fetch site');
-    return res.json();
+    const res = await fetch(`${API_BASE}/v1/sites/${encodeURIComponent(id)}`);
+    if (!res.ok) throw new Error(`Site not found: ${res.status}`);
+    return { data: await res.json() };
   },
 
   async getStates() {
-    const res = await fetch(`${API_BASE}/states`);
+    const res = await fetch(`${API_BASE}/v1/states`);
     if (!res.ok) throw new Error('Failed to fetch states');
-    return res.json();
+    return { data: await res.json() };
   },
 
   async analyzeSite(lat, lng) {
-    const res = await fetch(`${API_BASE}/utility/analyze`, {
+    const res = await fetch(`${API_BASE}/v1/predict`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ latitude: lat, longitude: lng }),
     });
-    if (!res.ok) throw new Error('Failed to analyze site');
-    return res.json();
+    if (!res.ok) throw new Error(`Prediction failed: ${res.status}`);
+    return { data: await res.json() };
   },
 };
 
-// Export the selected API implementation
 const api = USE_MOCK ? mockApi : liveApi;
 export default api;

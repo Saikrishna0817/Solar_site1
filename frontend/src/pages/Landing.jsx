@@ -25,9 +25,9 @@ const stagger = {
 
 const Landing = () => {
   const heroStats = [
-    { value: 500, suffix: ' GW', label: 'Target by 2030' },
-    { value: 30000, suffix: '+', label: 'Sites Analyzed' },
-    { value: 88, suffix: '%', label: 'Model Accuracy' },
+    { value: 500, suffix: ' GW', label: 'National Target by 2030' },
+    { value: 101, suffix: '', label: 'Operational Plants Tracked' },
+    { value: 210, suffix: '+', label: 'Districts Analyzed' },
     { value: 42, suffix: '', label: 'Input Features' },
   ];
 
@@ -38,19 +38,19 @@ const Landing = () => {
   ];
 
   const pipelineSteps = [
-    { title: 'Data Collection', description: '42 features from satellite, weather, grid, and economic sources', icon: '📡', color: '#06B6D4' },
-    { title: 'Preprocessing', description: 'Feature engineering, normalization, and geospatial alignment', icon: '⚙️', color: '#8B5CF6' },
-    { title: 'ML Ensemble', description: 'RF (30%) + XGBoost (50%) + GBM (20%) weighted ensemble', icon: '🧠', color: '#F5A623' },
-    { title: 'Suitability Scoring', description: '0-1 composite score with SHAP-based feature importance', icon: '📈', color: '#10B981' },
+    { title: 'Data Collection', description: '42 features from satellite, weather, grid, and economic sources across 210 districts', icon: '📡', color: '#06B6D4' },
+    { title: 'Preprocessing', description: 'Feature engineering, normalization, multicollinearity removal, and geospatial alignment', icon: '⚙️', color: '#8B5CF6' },
+    { title: 'Real CUF Target', description: 'Actual CUF from 101 operational solar plants (CEA data) as ML training target', icon: '🧠', color: '#F5A623' },
+    { title: 'Suitability Scoring', description: 'Ridge regression + RF feature importance ranking across weighted features', icon: '📈', color: '#10B981' },
     { title: 'Ranking & Analysis', description: 'State-wise rankings, economics, and deployment recommendations', icon: '🏆', color: '#E8590C' },
   ];
 
   const features = [
-    { title: 'Interactive Map', description: 'Explore 30,000+ sites across India with real-time filtering', icon: '🗺️' },
-    { title: 'AI Suitability Score', description: 'ML ensemble model with R² = 0.88 prediction accuracy', icon: '🤖' },
+    { title: 'Interactive Map', description: 'Explore solar plants and potential sites across India with real-time filtering', icon: '🗺️' },
+    { title: 'Real CUF Data', description: 'Trained on actual CUF from 101 operational plants (CEA), not simulated data', icon: '🤖' },
     { title: 'Economic Analysis', description: 'LCOE, NPV, and payback calculations for each site', icon: '💹' },
-    { title: 'Explainable AI', description: 'SHAP values show why each site scored the way it did', icon: '🔍' },
-    { title: 'Multi-Scale Analysis', description: 'Utility-scale (30K+ sites) and rooftop (300M buildings)', icon: '🏗️' },
+    { title: 'Transparent Scoring', description: 'Weighted composite index with feature importances for each site', icon: '🔍' },
+    { title: 'Multi-Scale Analysis', description: 'Utility-scale plants and district-level solar potential assessment', icon: '🏗️' },
     { title: 'Research Ready', description: 'Publication-quality charts and export capabilities', icon: '📄' },
   ];
 
@@ -77,7 +77,7 @@ const Landing = () => {
               transition={{ delay: 0.4, duration: 0.5 }}
             >
               <span className="w-2.5 h-2.5 rounded-full bg-success animate-pulse" />
-              <span className="text-sm font-mono text-txt-dim uppercase tracking-widest">AI-Powered Solar Intelligence</span>
+              <span className="text-sm font-mono text-txt-dim uppercase tracking-widest">Data-Driven Solar Intelligence</span>
             </motion.div>
 
             <h1 className="font-display font-bold text-5xl md:text-6xl lg:text-7xl leading-[1.08] mb-6">
@@ -89,7 +89,7 @@ const Landing = () => {
             </h1>
 
             <p className="text-txt-secondary text-lg md:text-xl lg:text-2xl mb-8 max-w-xl leading-relaxed">
-              Machine learning ensemble identifies the best locations for solar energy deployment
+              Machine learning trained on real plant performance data identifies the best locations for solar energy deployment
               across India, supporting the <span className="text-solar-gold font-semibold">500 GW renewable target by 2030</span>.
             </p>
 
@@ -328,7 +328,7 @@ const Landing = () => {
               Ready to Explore India's Solar Potential?
             </h2>
             <p className="text-txt-secondary text-lg md:text-xl mb-8 max-w-xl mx-auto">
-              Dive into the interactive dashboard and discover optimal solar sites powered by machine learning.
+              Dive into the interactive dashboard and discover optimal solar sites backed by real-world plant performance data.
             </p>
             <motion.div
               className="flex justify-center gap-4"

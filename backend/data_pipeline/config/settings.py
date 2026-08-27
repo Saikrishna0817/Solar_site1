@@ -20,9 +20,37 @@ for d in (RAW_DIR, PROCESSED_DIR, REPORTS_DIR):
 
 # ─── Data Sources ──────────────────────────────────────────────────
 DISTRICTS = {
-    "Telangana": 33,  # 33 districts
-    "AndhraPradesh": 13,  # 26 districts in real, using 13 for pilot
+    "Telangana": 33,
+    "Andhra Pradesh": 26,
+    "Karnataka": 31,
+    "Maharashtra": 36,
+    "Gujarat": 33,
+    "Rajasthan": 33,
+    "Tamil Nadu": 38,
+    "Madhya Pradesh": 55,
+    "Uttar Pradesh": 75,
+    "Punjab": 23,
+    "Haryana": 22,
+    "Odisha": 30,
+    "Chhattisgarh": 33,
+    "Jharkhand": 24,
+    "Bihar": 38,
+    "West Bengal": 23,
+    "Kerala": 14,
+    "Assam": 35,
 }
+
+TOTAL_DISTRICTS = sum(DISTRICTS.values())
+
+# All India states for centroid generation
+ALL_INDIA_STATES = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+    "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand",
+    "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+    "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
+    "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura",
+    "Uttar Pradesh", "Uttarakhand", "West Bengal",
+]
 
 # ─── API / Service Config ────────────────────────────────────────
 NASA_POWER_BASE = "https://power.larc.nasa.gov/api/temporal/climatology/point"

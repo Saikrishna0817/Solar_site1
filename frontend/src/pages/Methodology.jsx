@@ -21,25 +21,25 @@ const Methodology = () => {
       title: 'Data Acquisition',
       time: 'Stage 1',
       color: '#06B6D4',
-      items: ['NASA POWER API — Solar irradiance (GHI, DNI)', 'SRTM DEM — Terrain elevation, slope, aspect', 'ISRO Bhuvan — Land use/land cover', 'CEA/PGCIL — Grid infrastructure data', 'IMD — Climate and weather data', 'Census/SEDAC — Socioeconomic indicators'],
+      items: ['NASA POWER API — Solar irradiance (GHI, DNI, DHI)', 'SRTM DEM — Terrain elevation, slope, aspect', 'ESA WorldCover — Land use/land cover (%)', 'OSM — Infrastructure proximity', 'MODIS AOD — Aerosol optical depth', 'Census 2011 + projections — Population & density'],
     },
     {
       title: 'Feature Engineering',
       time: 'Stage 2',
       color: '#8B5CF6',
-      items: ['42 features across 8 categories', 'Geospatial alignment to 5km grid cells', 'Temporal aggregation (monthly → annual)', 'Min-Max normalization (0-1 range)', 'Correlation analysis & feature selection', 'Train/test split (80/20) with 5-fold CV'],
+      items: ['42 total features (27 raw + 15 engineered)', 'Multicollinearity removal (VIF < 10)', 'Leakage-free preprocessing pipeline', 'Stratified train/test split (80/20 by state)', 'Winsorization + log-transform + StandardScale', 'Composite index (infra, solar, climate)'],
     },
     {
-      title: 'Model Training',
+      title: 'Model Training (Real CUF)',
       time: 'Stage 3',
       color: '#F5A623',
-      items: ['Random Forest (n=500 trees, max_depth=12)', 'XGBoost (lr=0.1, max_depth=8, n=300)', 'Gradient Boosting (lr=0.05, n=400)', 'Hyperparameter tuning (GridSearchCV)', '5-fold cross-validation', 'Trained on 127 operational solar plants'],
+      items: ['Real CUF from 101 operational plants (CEA data)', 'Ridge regression with HPO (CV on train only)', 'Random Forest for feature importance ranking', '5-fold cross-validation (no test leakage)', 'Weighted composite suitability index', 'Bootstrap CI for all metrics'],
     },
     {
-      title: 'Ensemble & Scoring',
+      title: 'Scoring & Prediction',
       time: 'Stage 4',
       color: '#10B981',
-      items: ['Weighted average: RF(30%) + XGB(50%) + GBM(20%)', 'Suitability score: 0 (unsuitable) to 1 (optimal)', 'SHAP values for local interpretability', 'Confidence intervals via bootstrap', 'Economic calculations (LCOE, NPV, payback)', 'Spatial ranking and recommendations'],
+      items: ['Weighted composite suitability index (0-1 scale)', 'Ridge regression HPO-driven scoring', 'Random Forest feature importance (coeff magnitude)', 'Bootstrap confidence intervals', 'Economic calculations (LCOE, NPV, payback)', 'Spatial ranking and recommendations'],
     },
   ];
 
@@ -99,13 +99,13 @@ const Methodology = () => {
         </div>
 
         {/* Model Architecture */}
-        <SectionTitle title="Ensemble Model" subtitle="Three complementary models combined via weighted averaging" gradient="tech" />
+        <SectionTitle title="Model Architecture" subtitle="Ridge regression as primary scorer with RF for feature importance ranking" gradient="tech" />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16">
           {[
-            { name: 'Random Forest', weight: '30%', color: '#10B981', params: 'n_estimators=500, max_depth=12', strength: 'Robust to outliers, handles non-linear relationships' },
-            { name: 'XGBoost', weight: '50%', color: '#F5A623', params: 'lr=0.1, max_depth=8, n_est=300', strength: 'Best individual performance, gradient optimization' },
-            { name: 'Gradient Boosting', weight: '20%', color: '#8B5CF6', params: 'lr=0.05, n_est=400', strength: 'Fine-grained corrections, reduces bias' },
+            { name: 'Ridge Regression', weight: 'Primary', color: '#F5A623', params: 'HPO-tuned alpha, CV-optimized on train only', strength: 'Stable coefficients, no test-set leakage, robust to collinearity' },
+            { name: 'Random Forest', weight: 'Feature Importances', color: '#10B981', params: 'n_estimators=200, max_depth=3, aggressive regularization', strength: 'Non-linear interactions, reliable importance ranking for small data' },
+            { name: 'LASSO (Planned)', weight: 'Feature Selection', color: '#8B5CF6', params: 'L1 regularization for automatic feature sparsity', strength: 'Shrinks redundant features to zero, ideal for high-dim low-N' },
           ].map((model, i) => (
             <motion.div
               key={model.name}

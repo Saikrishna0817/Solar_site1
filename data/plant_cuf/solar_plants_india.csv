@@ -1,0 +1,103 @@
+plant_name,state,district,latitude,longitude,installed_capacity_mw,annual_cuf,annual_generation_mu,operational_since
+Bhadla Solar Park,Rajasthan,Jodhpur,27.5394,71.9101,2245,0.239,4705,2018
+Pokhran Solar,Rajasthan,Jaisalmer,26.9200,71.9200,750,0.241,1583,2019
+Jaisalmer West Solar,Rajasthan,Jaisalmer,26.9157,70.9083,350,0.237,727,2020
+Barmer Solar Zone,Rajasthan,Barmer,25.7521,71.3967,250,0.233,510,2019
+Bikaner Solar Farm,Rajasthan,Bikaner,28.0229,73.3119,400,0.228,799,2021
+Fatehgarh Solar Park,Rajasthan,Jaisalmer,27.3584,71.0324,421,0.235,866,2020
+Nokh Solar Park,Rajasthan,Jaisalmer,27.5500,72.2500,925,0.238,1929,2021
+Sam Solar Zone,Rajasthan,Jaisalmer,26.8800,70.5600,300,0.234,615,2022
+Phalodi Solar,Rajasthan,Jodhpur,27.1310,72.3640,150,0.229,301,2020
+Churu Solar,Rajasthan,Churu,28.3020,74.9670,100,0.222,195,2021
+Pavagada Solar Park,Karnataka,Tumkur,14.1014,77.2810,2050,0.192,3447,2019
+Raichur Solar,Karnataka,Raichur,16.2120,77.3439,300,0.187,491,2020
+Bellary Solar Farm,Karnataka,Bellary,15.1394,76.9214,200,0.185,324,2019
+Koppal Solar,Karnataka,Koppal,15.3481,76.1537,250,0.188,412,2021
+Gadag Solar Park,Karnataka,Gadag,15.4318,75.6375,180,0.184,290,2020
+Chitradurga Solar,Karnataka,Chitradurga,14.2312,76.3983,150,0.182,239,2022
+Bagalkot Solar,Karnataka,Bagalkot,16.1767,75.6969,100,0.181,159,2021
+Kurnool Ultra Mega Solar,Andhra Pradesh,Kurnool,15.8281,78.0373,1000,0.208,1822,2017
+NP Kunta Solar Park,Andhra Pradesh,Anantapur,14.8700,77.4500,1500,0.205,2694,2020
+Anantapur Solar Park,Andhra Pradesh,Anantapur,14.6819,77.6006,500,0.202,885,2019
+Kadapa Solar Zone,Andhra Pradesh,Kadapa,14.4747,78.8242,250,0.198,434,2020
+Galiveedu Solar,Andhra Pradesh,Annamayya,14.0500,78.5000,200,0.195,342,2021
+Tadipatri Solar,Andhra Pradesh,Anantapur,14.9080,78.0100,180,0.201,317,2022
+Charanka Solar Park,Gujarat,Patan,23.8991,71.2005,790,0.215,1487,2012
+Kutch Solar Zone,Gujarat,Kutch,23.7337,69.8597,500,0.211,924,2020
+Banaskantha Solar,Gujarat,Banaskantha,24.1705,72.4367,250,0.205,449,2019
+Dholera SIR Solar,Gujarat,Ahmedabad,22.2481,72.1930,500,0.213,933,2021
+Bhuj Solar Park,Gujarat,Kutch,23.2494,69.6669,300,0.209,549,2021
+Surendranagar Solar,Gujarat,Surendranagar,22.7231,71.6485,200,0.207,363,2022
+Radhanpur Solar,Gujarat,Patan,23.8325,71.6264,180,0.204,322,2020
+Morbi Solar,Gujarat,Morbi,22.8183,70.8332,150,0.202,265,2022
+Rewa Ultra Mega Solar,Madhya Pradesh,Rewa,24.5362,81.3037,750,0.188,1235,2018
+Neemuch Solar Park,Madhya Pradesh,Neemuch,24.4735,74.8707,500,0.191,837,2020
+Shajapur Solar,Madhya Pradesh,Shajapur,23.4328,76.2770,250,0.185,405,2021
+Mandsaur Solar,Madhya Pradesh,Mandsaur,24.0720,75.0690,250,0.186,407,2019
+Agar Solar Park,Madhya Pradesh,Agar,23.7060,76.0160,200,0.182,319,2022
+Chhatarpur Solar,Madhya Pradesh,Chhatarpur,24.9140,79.5850,150,0.178,234,2021
+Sakri Solar Park,Maharashtra,Dhule,20.9874,73.9930,300,0.175,460,2019
+Latur Solar,Maharashtra,Latur,18.4088,76.5604,150,0.173,227,2021
+Solapur Solar,Maharashtra,Solapur,17.6599,75.9064,200,0.176,308,2022
+Jalna Solar Park,Maharashtra,Jalna,19.8400,75.8860,180,0.172,271,2020
+Aurangabad Solar,Maharashtra,Aurangabad,19.8762,75.3433,150,0.170,223,2021
+Osmanabad Solar,Maharashtra,Osmanabad,18.1815,76.0390,120,0.169,178,2022
+Bathinda Solar,Punjab,Bathinda,30.2110,74.9455,100,0.168,147,2019
+Fazilka Solar,Punjab,Fazilka,30.4025,74.0283,80,0.165,116,2021
+Mansa Solar,Punjab,Mansa,29.9873,75.3979,60,0.163,86,2022
+Hisar Solar Park,Haryana,Hisar,29.1492,75.7217,120,0.170,179,2020
+Bhiwani Solar,Haryana,Bhiwani,28.7930,76.1390,80,0.167,117,2021
+Sirsa Solar,Haryana,Sirsa,29.5325,75.0287,60,0.165,87,2022
+Ramanathapuram Solar,Tamil Nadu,Ramanathapuram,9.3762,78.8308,150,0.180,237,2020
+Sivaganga Solar,Tamil Nadu,Sivaganga,10.1263,78.5093,100,0.177,155,2019
+Tirunelveli Solar,Tamil Nadu,Tirunelveli,8.7139,77.7567,200,0.182,319,2020
+Thoothukudi Solar,Tamil Nadu,Thoothukudi,8.7642,78.1348,180,0.181,285,2021
+Virudhunagar Solar,Tamil Nadu,Virudhunagar,9.5810,77.9580,150,0.179,235,2022
+Kamuthi Solar,Tamil Nadu,Ramanathapuram,9.3500,78.4500,648,0.185,1050,2016
+Coimbatore Solar,Tamil Nadu,Coimbatore,11.0168,76.9558,80,0.174,122,2021
+Mirzapur Solar,Uttar Pradesh,Mirzapur,25.1460,82.5690,150,0.165,217,2020
+Bundelkhand Solar,Uttar Pradesh,Jhansi,25.4484,78.5685,200,0.168,294,2021
+Jalaun Solar Park,Uttar Pradesh,Jalaun,26.1450,79.3340,150,0.163,214,2021
+Hardoi Solar,Uttar Pradesh,Hardoi,27.3940,80.1280,100,0.160,140,2022
+Kalahandi Solar,Odisha,Kalahandi,19.9069,83.1763,80,0.152,107,2021
+Balangir Solar,Odisha,Balangir,20.7048,83.4898,60,0.149,78,2022
+Ganjam Solar,Odisha,Ganjam,19.3870,85.0500,50,0.151,66,2022
+Korba Solar,Chhattisgarh,Korba,22.3595,82.7501,60,0.148,78,2021
+Rajnandgaon Solar,Chhattisgarh,Rajnandgaon,21.0970,81.0300,40,0.145,51,2022
+Hazaribagh Solar,Jharkhand,Hazaribagh,23.9926,85.3637,50,0.143,63,2021
+Nawada Solar,Bihar,Nawada,24.8868,85.5413,70,0.140,86,2020
+Rohtas Solar,Bihar,Rohtas,24.9570,84.0130,50,0.138,60,2022
+Gaya Solar,Bihar,Gaya,24.7955,85.0005,40,0.139,49,2022
+Purulia Solar,West Bengal,Purulia,23.3337,86.3650,60,0.135,71,2021
+Bankura Solar,West Bengal,Bankura,23.2330,87.0660,40,0.137,48,2022
+Dehradun Solar,Uttarakhand,Dehradun,30.3165,78.0322,30,0.142,37,2020
+Chamoli Solar,Uttarakhand,Chamoli,30.4010,79.3290,20,0.158,28,2022
+Spiti Valley Solar,Himachal Pradesh,Lahaul Spiti,32.5790,78.0350,15,0.175,23,2021
+Mandi Solar,Himachal Pradesh,Mandi,31.7080,76.9320,10,0.165,14,2022
+Guwahati Solar,Assam,Kamrup,26.1445,91.7362,25,0.132,29,2021
+Jorhat Solar,Assam,Jorhat,26.7500,94.2170,15,0.130,17,2022
+Agartala Solar,Tripura,West Tripura,23.8310,91.2860,10,0.128,11,2022
+Shillong Solar,Meghalaya,East Khasi Hills,25.5780,91.8930,10,0.125,11,2022
+Kasaragod Solar,Kerala,Kasaragod,12.4996,74.9869,30,0.148,39,2020
+Palakkad Solar,Kerala,Palakkad,10.7867,76.6548,20,0.150,26,2022
+Kohima Solar,Nagaland,Kohima,25.6740,94.1110,5,0.122,5,2022
+Aizawl Solar,Mizoram,Aizawl,23.7270,92.7170,5,0.120,5,2022
+Gangtok Solar,Sikkim,East Sikkim,27.3310,88.6160,10,0.135,12,2022
+Chennai Solar Rooftop Hub,Tamil Nadu,Chennai,13.0827,80.2707,100,0.172,151,2020
+Hyderabad Solar Belt,Telangana,Ranga Reddy,17.3850,78.4867,200,0.190,333,2019
+Mahbubnagar Solar,Telangana,Mahbubnagar,16.7488,77.9855,150,0.188,247,2020
+Nalgonda Solar Farm,Telangana,Nalgonda,17.0575,79.2672,120,0.185,194,2021
+Warangal Solar,Telangana,Warangal,17.9784,79.5941,100,0.182,159,2021
+Karimnagar Solar,Telangana,Karimnagar,18.4386,79.1288,80,0.181,127,2022
+Nizamabad Solar,Telangana,Nizamabad,18.6725,78.0940,60,0.179,94,2022
+Adilabad Solar,Telangana,Adilabad,19.6640,78.5320,50,0.178,78,2022
+Goa Solar Park,Goa,North Goa,15.4909,73.8278,30,0.155,41,2021
+Port Blair Solar,Andaman and Nicobar,South Andaman,11.6234,92.7265,10,0.140,12,2022
+Leh Solar Plant,Ladakh,Leh,34.1526,77.5771,25,0.195,43,2020
+Kargil Solar,Ladakh,Kargil,34.5580,76.1340,15,0.190,25,2021
+Diu Solar Park,Dadra and Nagar Haveli and Daman and Diu,Diu,20.7144,70.9874,20,0.195,34,2021
+Silvassa Solar,Dadra and Nagar Haveli and Daman and Diu,Dadra and Nagar Haveli,20.2770,73.0160,10,0.170,15,2022
+Chandigarh Solar,Chandigarh,Chandigarh,30.7333,76.7794,10,0.158,14,2021
+Delhi Solar Park,Delhi,North West Delhi,28.7041,77.1025,20,0.155,27,2020
+Puducherry Solar,Puducherry,Puducherry,11.9416,79.8083,10,0.162,14,2022
+Manipur Solar Park,Manipur,Imphal East,24.8120,93.9500,5,0.123,5,2022

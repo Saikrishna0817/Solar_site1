@@ -160,6 +160,18 @@ def preprocess(df: pd.DataFrame) -> Tuple[Optional[pd.DataFrame], Optional[pd.Da
     if dist_to_drop:
         features = features.drop(columns=dist_to_drop)
 
+    # Drop features with perfect multicollinearity (Audit Fix: avoid VIF = inf)
+    collinear_drops = []
+    if "peak_sun_hours" in features.columns:
+        collinear_drops.append("peak_sun_hours")  # r ≈ 1.0 with avg_ghi_kwh_m2_day
+    if "wasteland_builtup_pct" in features.columns:
+        collinear_drops.append("wasteland_builtup_pct")  # r ≈ 0.997 with builtup_pct
+    if "solar_variability" in features.columns and "solar_efficiency_index" in features.columns:
+        collinear_drops.append("solar_efficiency_index")  # r ≈ 0.997 with solar_variability
+    if collinear_drops:
+        features = features.drop(columns=collinear_drops)
+        logger.info("  Dropped collinear features: %s", collinear_drops)
+
     # Determine numeric / categorical (before split)
     numeric_cols = features.select_dtypes(include=[np.number]).columns.tolist()
     cat_cols = features.select_dtypes(exclude=[np.number]).columns.tolist()

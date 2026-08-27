@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Component } from 'react';
+import PropTypes from 'prop-types';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import Landing from './pages/Landing';
@@ -8,6 +10,36 @@ import SiteAnalysis from './pages/SiteAnalysis';
 import Methodology from './pages/Methodology';
 import Results from './pages/Results';
 import About from './pages/About';
+
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, info) {
+    console.error('App ErrorBoundary caught:', error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '40px', textAlign: 'center', color: '#E8F4FD', background: '#0A0E1A', minHeight: '100vh' }}>
+          <h1 style={{ color: '#F5A623', marginBottom: '16px' }}>Something went wrong</h1>
+          <pre style={{ textAlign: 'left', fontSize: '12px', color: '#EF4444', maxWidth: '600px', margin: '0 auto', overflow: 'auto' }}>
+            {this.state.error?.toString()}
+          </pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+ErrorBoundary.propTypes = {
+  children: PropTypes.node,
+};
 
 const PageTransition = ({ children }) => (
   <motion.div
@@ -19,6 +51,10 @@ const PageTransition = ({ children }) => (
     {children}
   </motion.div>
 );
+
+PageTransition.propTypes = {
+  children: PropTypes.node,
+};
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -45,7 +81,9 @@ const AnimatedRoutes = () => {
 function App() {
   return (
     <BrowserRouter>
-      <AnimatedRoutes />
+      <ErrorBoundary>
+        <AnimatedRoutes />
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

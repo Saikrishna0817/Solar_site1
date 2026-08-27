@@ -1,4 +1,5 @@
 // Mock Solar Sites Data — 50 representative sites across India
+// Represents the 101 tracked solar plants in our CUF dataset
 // Each site has realistic feature values derived from the 42-feature schema
 
 const generateMonthlyGeneration = (ghi, capacity) => {

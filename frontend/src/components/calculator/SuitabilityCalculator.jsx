@@ -96,7 +96,7 @@ const SuitabilityCalculator = ({ className = '' }) => {
 
           {/* Breakdown bars */}
           <div className="w-full space-y-3">
-            {result.breakdown.map(({ feature, score, contribution }) => (
+            {result.breakdown.map(({ feature, score }) => (
               <div key={feature}>
                 <div className="flex justify-between text-xs mb-1">
                   <span className="text-txt-secondary">{feature}</span>

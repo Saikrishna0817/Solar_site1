@@ -2,22 +2,23 @@ import { motion } from 'framer-motion';
 import GlassCard from '../components/ui/GlassCard';
 import SectionTitle from '../components/ui/SectionTitle';
 import GradientButton from '../components/ui/GradientButton';
+import { KEY_METRICS } from '../data/constants';
 
 const About = () => {
   const techStack = [
     { category: 'Frontend', items: ['React 18', 'Three.js / R3F', 'Framer Motion', 'Recharts', 'Leaflet', 'Tailwind CSS 3'] },
-    { category: 'Backend', items: ['Python 3.10+', 'FastAPI', 'scikit-learn', 'XGBoost', 'SHAP', 'Pandas/NumPy'] },
+    { category: 'Backend', items: ['Python 3.10+', 'FastAPI', 'scikit-learn', 'Ridge Regression', 'SHAP', 'Pandas/NumPy'] },
     { category: 'Data Sources', items: ['NASA POWER', 'SRTM DEM', 'ISRO Bhuvan', 'CEA/PGCIL', 'IMD Weather', 'Census India'] },
-    { category: 'ML Models', items: ['Random Forest', 'XGBoost', 'Gradient Boosting', 'Weighted Ensemble', 'SHAP Explainability', '5-Fold CV'] },
+    { category: 'ML Models', items: ['Ridge Regression', 'Random Forest', 'LASSO', 'Weighted Composite Index', 'SHAP Explainability', '5-Fold CV'] },
   ];
 
   const researchHighlights = [
-    { label: 'Training Samples', value: '127 solar plants' },
-    { label: 'Feature Dimensions', value: '42 input features' },
-    { label: 'Model Accuracy', value: 'R² = 0.88' },
-    { label: 'Prediction Error', value: 'MAPE = 11.5%' },
-    { label: 'Coverage', value: '28 states / UTs' },
-    { label: 'Sites Screened', value: '30,000+ sites' },
+    { label: 'Training Samples', value: `${KEY_METRICS.sitesAnalyzed} solar plants` },
+    { label: 'Feature Dimensions', value: `${KEY_METRICS.featuresUsed} input features` },
+    { label: 'Model Type', value: 'Ridge + WCI' },
+    { label: 'Districts Analyzed', value: `${KEY_METRICS.districtsAnalyzed} districts` },
+    { label: 'Coverage', value: `${KEY_METRICS.statesWithPlants} states` },
+    { label: 'Tracked Capacity', value: `${KEY_METRICS.totalCapacityGW} GW` },
     { label: 'Grid Resolution', value: '5 km × 5 km' },
     { label: 'Temporal Span', value: '20-year weather data' },
   ];
@@ -34,15 +35,15 @@ const About = () => {
         <GlassCard hover={false} className="mb-10 max-w-4xl mx-auto">
           <h3 className="font-display font-bold text-2xl text-txt-primary mb-4 gradient-text-solar">Our Mission</h3>
           <p className="text-txt-secondary text-base leading-relaxed mb-4">
-            India's ambitious target of 500 GW renewable energy capacity by 2030 requires identifying thousands
+            India's ambitious target of {KEY_METRICS.targetGW} GW renewable energy capacity by {KEY_METRICS.targetYear} requires identifying thousands
             of optimal solar farm locations across the country. Traditional site selection methods are slow,
             expensive, and subjective — taking 6-12 months and ₹50-100 lakhs per site assessment, with a 70% failure rate.
           </p>
           <p className="text-txt-secondary leading-relaxed">
-            <strong className="text-txt-primary">SolarSite-India</strong> uses a machine learning ensemble model
-            trained on 127 operational solar plants to predict site suitability across 30,000+ potential locations.
+            <strong className="text-txt-primary">SolarSite-India</strong> uses a weighted composite index and Ridge regression model
+            trained on real CUF data from {KEY_METRICS.sitesAnalyzed} operational solar plants to evaluate solar potential across {KEY_METRICS.districtsAnalyzed} districts.
             Our platform enables data-driven decision-making in minutes rather than months, at zero cost,
-            with transparent AI explanations for every recommendation.
+            with transparent feature importance explanations for every recommendation.
           </p>
         </GlassCard>
 
@@ -97,11 +98,12 @@ const About = () => {
         <GlassCard hover={false} className="max-w-3xl mx-auto mb-12">
           <div className="text-center">
             <h3 className="font-display font-bold text-xl text-txt-primary mb-3">
-              SolarSite-India: AI-Optimized Solar Energy Site Selection Using Multi-Model Ensemble Learning
+              SolarSite-India: AI-Optimized Solar Energy Site Selection Using Real-Plant CUF Data
             </h3>
             <p className="text-txt-dim text-sm mb-6">
-              A comprehensive machine learning framework for identifying optimal solar deployment
-              locations across India using 42 geospatial, climatic, and economic features.
+              A framework for identifying optimal solar deployment locations across India using 42 geospatial,
+              climatic, and economic features, trained on real Capacity Utilization Factor (CUF) data from
+              {KEY_METRICS.sitesAnalyzed} operational solar plants.
             </p>
 
             <div className="glass p-4 rounded-lg mb-6 text-left">
@@ -113,15 +115,15 @@ const About = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-solar-gold mt-0.5">•</span>
-                  Weighted ensemble (RF + XGBoost + GBM) achieving R² = 0.88
+                  Real CUF target from {KEY_METRICS.sitesAnalyzed} operational solar plants (CEA data)
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-solar-gold mt-0.5">•</span>
-                  SHAP-based explainability for transparent AI decisions
+                  Ridge regression + RF feature importance for transparent scoring
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-solar-gold mt-0.5">•</span>
-                  Nationwide assessment of 30,000+ utility-scale sites
+                  District-level assessment across {KEY_METRICS.districtsAnalyzed} districts in {KEY_METRICS.statesWithPlants} states
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-solar-gold mt-0.5">•</span>

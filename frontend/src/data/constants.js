@@ -81,23 +81,27 @@ export const LAND_TYPES = [
   'Desert', 'Scrubland', 'Industrial', 'Rocky',
 ];
 
-// ─── Key Metrics ───────────────────────────────────────────
+// ─── Key Metrics (REAL DATA — sourced from MNRE/CEA official publications) ─────
 export const KEY_METRICS = {
   targetGW: 500,
-  sitesAnalyzed: 30000,
-  buildingsAssessed: 300000000,
-  modelAccuracy: 0.88,
-  mapeScore: 11.5,
+  targetYear: 2030,
+  targetSource: 'MNRE Physical Progress / PIB',
+  sitesAnalyzed: 101,
+  districtsAnalyzed: 210,
   featuresUsed: 42,
-  statesCovered: 28,
-  trainingPlants: 127,
+  statesWithPlants: 18,
+  totalCapacityGW: 164.59,
+  totalReGW: 291.73,
+  modelType: 'Weighted Composite Index + Ridge Regression',
+  evaluationMethod: '5-fold CV + holdout (no test leakage)',
+  officialStatsSource: 'MNRE Physical Progress (31.07.2026), CEA Installed Capacity (31.07.2026), CEA RE Generation (July 2026)',
 };
 
-// ─── Ensemble Model Weights ───────────────────────────────
+// ─── Ensemble Model Weights (Ridge regression as base; ensemble planned) ───
 export const MODEL_WEIGHTS = {
-  randomForest: 0.30,
-  xgboost: 0.50,
-  gradientBoosting: 0.20,
+  ridge: 0.60,
+  randomForest: 0.25,
+  xgboost: 0.15,
 };
 
 // ─── Navigation Links ─────────────────────────────────────
