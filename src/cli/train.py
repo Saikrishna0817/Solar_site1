@@ -46,10 +46,11 @@ def setup_logging(log_dir):
 def main():
     parser = argparse.ArgumentParser(description="SolarSite-India ML Training (Consolidated)")
     parser.add_argument("--models", nargs="+", default=["ridge", "lasso"],
-                        help="Models: ridge, lasso, elastic_net, random_forest, xgboost")
+                        help="Models: ridge, lasso, elastic_net, random_forest, xgboost, voting "
+                             "(paper order ridge-first, voting before stacking; defaults stay cheap)")
     parser.add_argument("--feature-selection", default="rfe",
                         choices=["none", "rfe", "lasso"])
-    parser.add_argument("--n-features", type=int, default=12)
+    parser.add_argument("--n-features", type=int, default=8)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--hpo", action="store_true",
                         help="Run HPO (CV on train only, no test leakage)")
@@ -62,6 +63,8 @@ def main():
     config.trainer.random_state = args.seed
     config.trainer.feature_selection_method = args.feature_selection
     config.trainer.n_features_to_select = args.n_features
+    if args.use_real_cuf:
+        config.data.cuf_source_filter = "cea_plant"
     setup_logging(config.logs_dir)
 
     logger.info("=" * 60)
@@ -74,6 +77,8 @@ def main():
     dl = SolarDataLoader(config.data)
     X_train, y_train, X_test, y_test, feature_names = dl.load()
     X_train_scaled, X_test_scaled = dl.fit_transform(X_train, X_test)
+    # Persist the ONE scaler inference must reuse (kills train/serve skew).
+    dl.save_preprocessor(str(config.models_dir / "preprocessor.joblib"))
 
     logger.info(f"Train: {X_train_scaled.shape[0]} rows × {X_train_scaled.shape[1]} features")
     logger.info(f"Test:  {X_test_scaled.shape[0]} rows")

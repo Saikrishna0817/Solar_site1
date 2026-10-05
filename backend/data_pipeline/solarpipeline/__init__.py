@@ -8,6 +8,7 @@ Usage:
 from .utils import get_logger, normalize_district, safe_read_csv, compute_cuf_theoretical
 from .data import merge_sources
 from .features import engineer_features
+from .exclusions import apply_exclusions
 from .eda import run_eda
 from .preprocess import preprocess
 from .core import run_pipeline

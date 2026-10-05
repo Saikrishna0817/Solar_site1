@@ -7,7 +7,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 
-from solarpipeline.utils import PROCESSED_DIR, get_logger, CONFIG
+from solarpipeline.utils import PROCESSED_DIR, get_logger, CONFIG, write_data_card
 
 TARGET_COL = "cuf"
 logger = get_logger(__name__)
@@ -148,7 +148,9 @@ def preprocess(df: pd.DataFrame) -> Tuple[Optional[pd.DataFrame], Optional[pd.Da
     df = df.copy()
 
     # Drop non-feature columns
-    drop = ["district", "state", "source", "state_x", "state_y", "state_name"]
+    drop = ["district", "state", "source", "state_x", "state_y", "state_name",
+            "cuf_source",  # provenance label: labels-only, never a feature
+            "excluded", "exclusion_reason"]  # L1 rules: labels-only, never learned
     drop = [c for c in drop if c in df.columns]
     # Also drop near-zero-variance NASA AOD
     if "aerosol_optical_depth" in df.columns:
@@ -180,6 +182,11 @@ def preprocess(df: pd.DataFrame) -> Tuple[Optional[pd.DataFrame], Optional[pd.Da
     # Train / test split (FIRST — before any imputation/encoding)
     districts = df["district"].values
     labels = df[["state", TARGET_COL]].copy() if "state" in df.columns else df[[TARGET_COL]].copy()
+    if "cuf_source" in df.columns:  # pass through for --use-real-cuf filtering (never a feature)
+        labels["cuf_source"] = df["cuf_source"].values
+    if "excluded" in df.columns:  # L1 flag rides with labels for serving (C2: show the reason)
+        labels["excluded"] = df["excluded"].values
+        labels["exclusion_reason"] = df["exclusion_reason"].values if "exclusion_reason" in df.columns else ""
     stratify_col = df["state"].values if "state" in df.columns else None
 
     try:
@@ -244,6 +251,14 @@ def preprocess(df: pd.DataFrame) -> Tuple[Optional[pd.DataFrame], Optional[pd.Da
         y_test.to_csv(str(PROCESSED_DIR / "labels_test.csv"), index=False)
         logger.info("Saved: features_test.csv (%d x %d)", len(X_test), len(X_test.columns))
         logger.info("Saved: labels_test.csv (%d rows)", len(y_test))
+        split_card = X_train.assign(_split="train")
+        split_card = pd.concat([split_card, X_test.assign(_split="test")], ignore_index=True)
+        write_data_card(
+            split_card,
+            "train_test_split",
+            {"train_rows": len(X_train), "test_rows": len(X_test),
+             "test_size": CONFIG.test_size, "random_state": CONFIG.random_state},
+        )
 
         # Convenience single-file copies
         X_all = df[["district"] + [c for c in features.columns if c != "district"]]

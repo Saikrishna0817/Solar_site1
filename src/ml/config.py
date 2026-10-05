@@ -17,6 +17,8 @@ class DataConfig:
     target_column: str = "cuf"
     id_column: str = "district"
     categorical_column: str = "dominant_land_use"
+    # ponytail: "all" until Phase-2 merge exports cuf_source; then "cea_plant" filters to measured rows.
+    cuf_source_filter: str = "all"  # "all" | "cea_plant"
 
 
 @dataclass
@@ -51,9 +53,9 @@ class TrainerConfig:
     random_state: int = 42
     n_jobs: int = -1
     
-    # Feature selection
+    # Feature selection (Chakraborty et al. 2023: 40->9 funnel; RFE<=8 at n~160 keeps >=6 samples/feat)
     feature_selection_method: str = "rfe"  # "rfe", "lasso", "none"
-    n_features_to_select: int = 15
+    n_features_to_select: int = 8
     
     # Hyperparameter optimization
     enable_hpo: bool = False

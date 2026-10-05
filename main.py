@@ -29,7 +29,7 @@ def main():
     parser.add_argument(
         "--n-features",
         type=int,
-        default=15,
+        default=8,
         help="Features to select",
     )
     parser.add_argument(

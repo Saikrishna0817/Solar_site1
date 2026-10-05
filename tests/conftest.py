@@ -10,6 +10,11 @@ _root = Path(__file__).resolve().parents[1] / "backend" / "data_pipeline"
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
+# ponytail: single choke point for test imports; test modules must not sys.path-insert.
+_project_root = Path(__file__).resolve().parents[1]
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
+
 # ── Protect pipeline outputs ───────────────────────────────────────
 # The preprocess() function writes directly to PROCESSED_DIR.
 # We save and restore the real processed files so tests don't

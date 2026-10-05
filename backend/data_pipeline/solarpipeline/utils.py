@@ -24,6 +24,22 @@ for _dir in (PROCESSED_DIR, REPORTS_DIR):
 
 LOG_FILE = PROCESSED_DIR / "solarpipeline.log"
 
+# Blueprint E8: every stage writes a data card (rows, columns, NaN rates, source, date).
+def write_data_card(df, name: str, extra: dict = None) -> None:
+    """Write <name>.data_card.json next to pipeline outputs. Stdlib only."""
+    import json
+
+    card = {
+        "artifact": name,
+        "date": time.strftime("%Y-%m-%d"),
+        "rows": len(df),
+        "columns": list(df.columns),
+        "nan_rates": {c: round(float(df[c].isna().mean()), 4) for c in df.columns},
+        **(extra or {}),
+    }
+    with open(PROCESSED_DIR / f"{name}.data_card.json", "w") as fh:
+        json.dump(card, fh, indent=2)
+
 # Single source for the real-plant CUF dataset path (both merge + loader use this).
 # ponytail: one constant, not per-callsite parents[N] math; add env override when paths vary by machine.
 PLANT_CUF_CSV = BASE_DIR / "data" / "plant_cuf" / "solar_plants_india.csv"

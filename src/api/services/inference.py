@@ -15,21 +15,25 @@ _model = None
 _feature_names = None
 _preprocessed_df = None
 _raw_df = None
+_scaler = None
 
 
 def _load_model():
-    global _model, _feature_names, _preprocessed_df, _raw_df
+    global _model, _feature_names, _preprocessed_df, _raw_df, _scaler
     if _model is not None:
         return
 
     model_path = MODELS_DIR / "ridge.joblib"
     feature_path = MODELS_DIR / "feature_names.json"
+    scaler_path = MODELS_DIR / "scaler_selected.joblib"
 
     if model_path.exists():
         _model = joblib.load(model_path)
         if feature_path.exists():
             with open(feature_path) as f:
                 _feature_names = json.load(f)
+        if scaler_path.exists():
+            _scaler = joblib.load(scaler_path)  # train/serve parity: same transform as training
 
     if not _feature_names:
         _feature_names = ["avg_ghi_kwh_m2_day", "avg_temp_c", "elevation_m", "slope_deg"]
@@ -60,10 +64,10 @@ def predict_cuf(latitude, longitude):
 
     matched = None
     if _raw_df is not None and "latitude" in _raw_df.columns:
-        _raw_df["_dist"] = np.sqrt(
+        dists = np.sqrt(  # local Series: never mutate the cached frame (race-safe)
             (_raw_df["latitude"] - latitude) ** 2 + (_raw_df["longitude"] - longitude) ** 2
         )
-        nearest_idx = _raw_df["_dist"].idxmin()
+        nearest_idx = dists.idxmin()
         nearest_district = str(_raw_df.loc[nearest_idx, "district"]).strip().lower()
     else:
         nearest_district = None
@@ -88,6 +92,8 @@ def predict_cuf(latitude, longitude):
     if _model is not None:
         X = _extract_model_input(matched)
         try:
+            if _scaler is not None:
+                X = _scaler.transform(X)
             cuf = float(_model.predict(X)[0])
             cuf = max(0.05, min(0.35, cuf))
         except (ValueError, IndexError):

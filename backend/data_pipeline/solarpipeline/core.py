@@ -8,10 +8,11 @@ import pandas as pd
 import yaml
 
 from solarpipeline.utils import (
-    PROCESSED_DIR, get_logger, CONFIG,
+    PROCESSED_DIR, get_logger, CONFIG, write_data_card,
 )
 from solarpipeline.data import merge_sources
 from solarpipeline.features import engineer_features
+from solarpipeline.exclusions import apply_exclusions
 from solarpipeline.eda import run_eda
 from solarpipeline.preprocess import preprocess
 
@@ -56,21 +57,26 @@ def run_pipeline(step: str = "all", export_metadata: bool = True) -> None:
             sys.exit(1)
         df.to_csv(str(PROCESSED_DIR / "master_dataset_clean.csv"), index=False)
         logger.info("Saved: master_dataset_clean.csv")
+        write_data_card(df, "master_dataset_clean", {"sources": "nasa/srtm/osm/modis/worldcover/census"})
         metadata["merge_shape"] = df.shape
     else:
-        df = pd.read_csv(str(PROCESSED_DIR / "master_dataset_clean.csv"))
+        df = None  # each step below loads the artifact it actually needs
 
     if step in ("eda", "all"):
         if df is None:
             df = pd.read_csv(str(PROCESSED_DIR / "master_dataset_clean.csv"))
         df = engineer_features(df)
+        df = apply_exclusions(df)  # L1: rules only, never learned
         run_eda(df)
         df.to_csv(str(PROCESSED_DIR / "master_dataset_engineered.csv"), index=False)
         logger.info("Saved: master_dataset_engineered.csv")
+        write_data_card(df, "master_dataset_engineered", {"engineered_features": 15})
         metadata["engineered_shape"] = df.shape
 
     if step in ("preprocess", "all"):
-        if df is None:
+        # ponytail: standalone preprocess must read the ENGINEERED master. Reading clean
+        # silently drops all 15 engineered features with no error (found the hard way).
+        if step == "preprocess" or df is None:
             df = pd.read_csv(str(PROCESSED_DIR / "master_dataset_engineered.csv"))
         result = preprocess(df)
         if result[0] is None:

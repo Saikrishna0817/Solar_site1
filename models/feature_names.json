@@ -1,1 +1,1 @@
-["longitude", "avg_ghi_kwh_m2_day", "avg_dni_kwh_m2_day", "max_temp_c", "avg_humidity_pct", "annual_rainfall_mm", "avg_cloud_cover_pct", "aod_2023", "solar_variability", "infrastructure_accessibility_index", "effective_ghi", "aridity_index", "solar_potential_score", "cloud_cover_penalty"]
+["longitude", "avg_ghi_kwh_m2_day", "annual_rainfall_mm", "avg_cloud_cover_pct", "elevation_m", "aspect_deg", "shrubland_pct", "builtup_pct", "district_area_sqkm", "population_density_per_sqkm", "slope_aspect_interaction", "population_pressure"]

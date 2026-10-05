@@ -57,6 +57,20 @@ Downloaded to `papers/` (open access). Paywalled items are URL-only — read abs
 
 MNRE physical progress · CEA installed-capacity / RE-generation / API / gen-re dashboard · NISE open-data + potential reports/maps · NIWE resource map (`https://maps.niwe.res.in/resource_map/map/solar` point GHI/DNI/DHI/GTI/AEP/CUF/P50) + SRRA · IMD Pune gridded + data.gov.in rainfall/IMD catalogs · NRSC Bhuvan thematic/NOEDA/ALanCRIT · Census censusindia + data.gov.in PCA · GADM + geoBoundaries (CC-BY) · Global Solar Atlas/Solargis + NREL OEDI (CC-BY) · SECI/IREDA/Grid India for plant lists/PPA CUF benchmarks.
 
+## G. Second sweep (2026-10-05, direct + indirect)
+
+| Item | Local file / URL | Access | Use |
+|------|------------------|--------|-----|
+| IMD 0.25° daily rainfall 1901-2024 + district normals + DSP gridded climatology | URL-only: `https://www.imdpune.gov.in/cmpg/Griddata/Rainfall_25_Bin.html`, `https://dsp.imdpune.gov.in/home_gridded_climatology.php`, `https://ckandev.indiadataportal.com/dataset/climate-data` (district CSVs) | Open (some via NDC request) | Validates `annual_rainfall_mm`; district normals as cross-check |
+| ESA WorldCover 10m 2021 (S1+S2, CC-BY-4.0) + IO-ESRI 10m annual LULC 2017-2024 | URL-only (AWS open buckets, no account): `s3://esa-worldcover`, `s3://io-10m-annual-lulc` | Open | Independent LULC check vs GEE WorldCover; IO time series for change detection |
+| WorldPop India 1km density 2020 (17 MB) + GHSL built-up/pop 100m | URL-only: `https://hub.worldpop.org/geodata/summary?id=41746`, JRC FTP via HDX | CC-BY-4.0 / open | Replaces census-only density with gridded population_pressure |
+| OSM power (Geofabrik energy schema, India PBF 1.6 GB, Overpass live, earth-osm CLI) | `district/Geofabrik_OSM_Energy_Schema.pdf` ✅ + URLs | ODbL | Real substation/line distances (replaces heuristic); India has 3951 plants + 473,956 km lines mapped |
+| MCD19A2 MAIAC AOD daily 1km V061 (Stage-3 validated) | URL-only (Earthdata login): `https://doi.org/10.5067/MODIS/MCD19A2.061` | Open w/ login | Upgrades MOD08 monthly AOD to daily dust/soiling signal |
+| SRTM 1-arcsec global (DOI 10.5066/F7PR7TFT) | `district/SRTM_Quick_Guide_LPDAAC.pdf` ✅ + EarthExplorer/LP DAAC | Open | Offline DEM backup when GEE unavailable |
+| Grid India NLDC daily PSP (solar MU) + Kaggle mirror (2018+, auto-updated) | `state/GRIDINDIA_PSP_26Feb2024.pdf` ✅ + kaggle URL | Open | Daily solar generation time series → CUF trends, complement to CEA monthly |
+| SECI own-projects + JVs (11820 MW parks) + CEA solar-parks status Apr-2024 | `state/CEA_SolarParks_Status_Apr2024.pdf` ✅ (51p, park/village/district/MW/land) | Open | Ground-truth park locations (Tadipatri, Mylavaram, Ramagiri) for validation + plant-list growth |
+| CPCB AQI/PM (portal + archive-downloader GitHub + Kaggle 2015-2020/2023-2025) | URL-only | Open | PM2.5/PM10 soiling proxy where AOD gaps exist |
+
 ## F. Next (no code built yet)
 
 1. Mandal centroids from ADM3 topojson (filter TG/AP) — pending go-ahead.

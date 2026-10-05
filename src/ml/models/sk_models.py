@@ -157,6 +157,36 @@ class ElasticNetModel(BaseModel):
         return None
 
 
+class VotingModel(BaseModel):
+    """Voting average of RF + Ridge (Chakraborty Table 8: voting 0.96 ≈ stacking 0.96
+    at 1/5 train cost; try before stacking, keep stacking iff CV gap > 0.01)."""
+
+    def __init__(self, config, random_state=42):
+        super().__init__("Voting", config, random_state)
+        from sklearn.ensemble import RandomForestRegressor, VotingRegressor
+        from sklearn.linear_model import Ridge
+        self.model = VotingRegressor([
+            ("rf", RandomForestRegressor(
+                n_estimators=config["rf_n_estimators"],
+                max_depth=config["rf_max_depth"],
+                min_samples_split=config["rf_min_samples_split"],
+                min_samples_leaf=config["rf_min_samples_leaf"],
+                random_state=random_state,
+                n_jobs=config.get("n_jobs", -1),
+            )),
+            ("ridge", Ridge(alpha=config["ridge_alpha"])),
+        ])
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
+        self.model.fit(X, y)
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        return self.model.predict(X)
+
+    def feature_importances(self) -> Optional[pd.Series]:
+        return None  # heterogeneous members; per-model plots cover importance.
+
+
 def get_model(name: str, config: Dict[str, Any], random_state: int = 42) -> BaseModel:
     """Factory to create model instances by name."""
     models = {
@@ -165,6 +195,7 @@ def get_model(name: str, config: Dict[str, Any], random_state: int = 42) -> Base
         "ridge": RidgeModel,
         "lasso": LassoModel,
         "elastic_net": ElasticNetModel,
+        "voting": VotingModel,
     }
     if name not in models:
         raise ValueError(f"Unknown model: {name}. Available: {list(models.keys())}")

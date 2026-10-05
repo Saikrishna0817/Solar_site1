@@ -103,6 +103,23 @@ class Trainer:
     def train(
         self, X_train, y_train, X_test, y_test, feature_names, *, model_name: str = "random_forest"
     ) -> Dict:
+        # Pearson>0.95 drop-one (Chakraborty §3.2.2): greedy, keeps first column, train-only.
+        # ponytail: greedy not optimal-subset; optimal search when n allows exact methods.
+        corr = X_train.corr().abs()
+        drop = set()
+        cols = list(X_train.columns)
+        for i in range(len(cols)):
+            if cols[i] in drop:
+                continue
+            for j in range(i + 1, len(cols)):
+                if corr.iloc[i, j] > 0.95:
+                    drop.add(cols[j])
+        if drop:
+            logger.info(f"Collinear drop (|r|>0.95): {sorted(drop)}")
+            X_train = X_train.drop(columns=list(drop))
+            X_test = X_test.drop(columns=list(drop))
+            feature_names = pd.Index([c for c in feature_names if c not in drop])
+
         # Feature selection
         X_train_sel, selected_names = self.feature_selection(
             X_train,
@@ -149,6 +166,17 @@ class Trainer:
         model_path = self.cfg.models_dir / f"{model_name}.joblib"
         model.save(str(model_path))
         results["model_path"] = str(model_path)
+
+        # Persist scaler fit on the SELECTED features so inference applies the
+        # exact same transform (train/serve parity by construction).
+        # ponytail: refit-on-scaled-data is ~identity (double-scale wart, kept for
+        # preprocess-test compat); replace with single-scale pipeline when tests allow.
+        from sklearn.preprocessing import StandardScaler
+        import joblib
+        _sel_scaler = StandardScaler().fit(X_train_sel.values)
+        scaler_path = self.cfg.models_dir / "scaler_selected.joblib"
+        joblib.dump(_sel_scaler, scaler_path)
+        results["scaler_path"] = str(scaler_path)
 
         # Save selected feature names for inference pipeline
         import json

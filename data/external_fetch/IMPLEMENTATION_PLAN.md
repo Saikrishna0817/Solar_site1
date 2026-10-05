@@ -33,7 +33,13 @@ tests/test_{pipeline,features,utils}.py (29 pass, pipeline only)
 5. Unify census growth to `CONFIG.census_compound_factor`.
 - Exit: `phase2_3_pipeline.py --step all` runs fresh-clone on 60 districts.
 
-## Phase 2 — Data mandal→district→state (2–3 days, one new collector)
+## Phase 2 — Data mandal→district→state (EXPORT DONE 2026-10-05, venv)
+
+- Full `phase2_3_pipeline.py --step all` ran green: 60 rows (8 cea_plant + 52 physics),
+  52 engineered cols, 48/12 split, labels now carry `cuf_source`.
+- Fixed en route: standalone `--step preprocess` read clean instead of engineered
+  (silently dropped 15 feats) — `core.py` now loads per-step artifacts.
+- `cuf_source` exported to labels AND added to feature-drop list (no leakage).
 
 1. Mandal centroids from fetched ADM3 topojson (filter TG/AP) — reuse `generate_all_india_centroids.py`.
    DONE (DEV): `scripts/generate_mandal_centroids.py` (stdlib-only, GADM L3) →

@@ -30,6 +30,20 @@ class SolarDataLoader:
 
         logger.info(f"Loaded train: {train_df.shape}, test: {test_df.shape}")
 
+        # Real-CUF filter: keep measured plant rows when the merge exports cuf_source.
+        filt = getattr(self.cfg, "cuf_source_filter", "all")
+        if filt != "all":
+            if "cuf_source" in train_labels.columns:
+                keep_tr = train_labels["cuf_source"] == filt
+                keep_te = test_labels["cuf_source"] == filt
+                logger.info(f"cuf_source={filt}: {keep_tr.sum()}/{len(keep_tr)} train, "
+                            f"{keep_te.sum()}/{len(keep_te)} test rows kept")
+                train_df, train_labels = train_df[keep_tr], train_labels[keep_tr]
+                test_df, test_labels = test_df[keep_te], test_labels[keep_te]
+            else:
+                logger.warning("cuf_source_filter=%s but labels lack cuf_source column; "
+                               "using all rows (run Phase-2 merge first)", filt)
+
         # Extract district IDs if needed
         self.train_ids = train_df[self.cfg.id_column].values if self.cfg.id_column in train_df.columns else None
         self.test_ids = test_df[self.cfg.id_column].values if self.cfg.id_column in test_df.columns else None

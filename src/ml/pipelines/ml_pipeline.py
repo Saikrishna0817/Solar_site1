@@ -50,6 +50,8 @@ class MLPipeline:
         
         # Scale features
         X_train_scaled, X_test_scaled = self.data_loader.fit_transform(X_train, X_test)
+        # Persist the ONE scaler inference must reuse (kills train/serve skew).
+        self.data_loader.save_preprocessor(str(self.cfg.models_dir / "preprocessor.joblib"))
         
         # Convert to DataFrames for feature selection compatibility
         X_train_df = pd.DataFrame(X_train_scaled, columns=X_train.columns, index=X_train.index)
