@@ -59,7 +59,8 @@ def collect_osm_proximity(centroids_csv, outdir):
 
 
 if __name__ == "__main__":
+    root = Path(__file__).parent.parent
     collect_osm_proximity(
-        "/home/krishna/Desktop/Projects/AAC/Solar_site/backend/data_pipeline/outputs/raw/shapefiles/telangana_ap_districts_centroids_final.csv",
-        "/home/krishna/Desktop/Projects/AAC/Solar_site/backend/data_pipeline/outputs/raw/osm"
+        root / "outputs" / "raw" / "shapefiles" / "telangana_ap_districts_centroids_final.csv",
+        root / "outputs" / "raw" / "osm"
     )

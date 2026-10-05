@@ -8,7 +8,7 @@ from utils.logging_helpers import get_logger
 
 logger = get_logger(__name__)
 
-DATA_DIR = Path("/home/krishna/Desktop/Projects/AAC/Solar_site/backend/data_pipeline/outputs/raw")
+DATA_DIR = Path(__file__).parent.parent / "outputs" / "raw"
 MASTER_DIR = DATA_DIR.parent / "processed"
 MASTER_DIR.mkdir(parents=True, exist_ok=True)
 

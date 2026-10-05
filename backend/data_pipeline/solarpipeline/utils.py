@@ -24,6 +24,10 @@ for _dir in (PROCESSED_DIR, REPORTS_DIR):
 
 LOG_FILE = PROCESSED_DIR / "solarpipeline.log"
 
+# Single source for the real-plant CUF dataset path (both merge + loader use this).
+# ponytail: one constant, not per-callsite parents[N] math; add env override when paths vary by machine.
+PLANT_CUF_CSV = BASE_DIR / "data" / "plant_cuf" / "solar_plants_india.csv"
+
 
 # ═════════════════════════════════════════════════════════════
 #  Centralised Pipeline Configuration
@@ -199,9 +203,7 @@ def load_real_cuf(cuf_csv_path: str = None) -> "pd.DataFrame":
         data/plant_cuf/solar_plants_india.csv
     """
     if cuf_csv_path is None:
-        cuf_csv_path = str(
-            Path(__file__).resolve().parents[4] / "data" / "plant_cuf" / "solar_plants_india.csv"
-        )
+        cuf_csv_path = str(PLANT_CUF_CSV)
     cuf_path = Path(cuf_csv_path)
     if not cuf_path.exists():
         raise FileNotFoundError(

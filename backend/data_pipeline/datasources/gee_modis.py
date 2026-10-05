@@ -75,7 +75,8 @@ if __name__ == "__main__":
     import ee
     from datasources.gee_helper import init_gee
     init_gee()
+    root = Path(__file__).parent.parent
     collect_modis_aod(
-        "/home/krishna/Desktop/Projects/AAC/Solar_site/backend/data_pipeline/outputs/raw/shapefiles/telangana_ap_districts_centroids_final.csv",
-        "/home/krishna/Desktop/Projects/AAC/Solar_site/backend/data_pipeline/outputs/raw/gee_modis"
+        root / "outputs" / "raw" / "shapefiles" / "telangana_ap_districts_centroids_final.csv",
+        root / "outputs" / "raw" / "gee_modis"
     )

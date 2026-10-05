@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Component } from 'react';
-import PropTypes from 'prop-types';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import Landing from './pages/Landing';
@@ -37,9 +36,7 @@ class ErrorBoundary extends Component {
   }
 }
 
-ErrorBoundary.propTypes = {
-  children: PropTypes.node,
-};
+// ponytail: runtime propTypes dropped (children: node x2 only); add TS props when a type bug bites.
 
 const PageTransition = ({ children }) => (
   <motion.div
@@ -51,10 +48,6 @@ const PageTransition = ({ children }) => (
     {children}
   </motion.div>
 );
-
-PageTransition.propTypes = {
-  children: PropTypes.node,
-};
 
 const AnimatedRoutes = () => {
   const location = useLocation();

@@ -85,8 +85,10 @@ def collect_srtm(centroids_csv, outdir):
 
 
 if __name__ == "__main__":
-    ee.Initialize(project='solar-site-495511')
+    from datasources.gee_helper import init_gee
+    init_gee()
+    root = Path(__file__).parent.parent
     collect_srtm(
-        "/home/krishna/Desktop/Projects/AAC/Solar_site/backend/data_pipeline/outputs/raw/shapefiles/telangana_ap_districts_centroids_final.csv",
-        "/home/krishna/Desktop/Projects/AAC/Solar_site/backend/data_pipeline/outputs/raw/gee_srtm"
+        root / "outputs" / "raw" / "shapefiles" / "telangana_ap_districts_centroids_final.csv",
+        root / "outputs" / "raw" / "gee_srtm"
     )

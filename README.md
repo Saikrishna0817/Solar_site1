@@ -6,7 +6,7 @@ AI-powered solar energy site selection platform for India.
 
 SolarSite-India is a data-driven solar site suitability platform that uses a machine learning ensemble to rank potential solar deployment locations. The project is being developed in stages, beginning with Telangana and Andhra Pradesh (60 districts) as the initial pilot region before scaling to national coverage.
 
-**Current scope**: 60 districts (33 Telangana + 27 Andhra Pradesh), 42 engineered features, 48 training samples.
+**Current scope**: 60 districts (33 Telangana + 27 Andhra Pradesh: 26 Apr-2022 districts + Markapuram, real since Dec-2025; Polavaram pending data), 42 engineered features, 48 training samples.
 
 **Status**: Data pipeline (Stages 1–3) is complete and production-ready. The ML model training scripts are next on the roadmap.
 

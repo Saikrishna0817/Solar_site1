@@ -9,6 +9,7 @@ import pandas as pd
 
 from solarpipeline.utils import (
     RAW_DIR,
+    PLANT_CUF_CSV,
     SOURCE_SCHEMA,
     NASA_RENAMES,
     OSM_RENAMES,
@@ -123,7 +124,7 @@ def merge_sources() -> Optional[pd.DataFrame]:
     if "census_pop_2011" in census.columns and "census_pop_2024_projected" in census.columns:
         missing_2011 = census["census_pop_2011"].isna() & census["census_pop_2024_projected"].notna()
         if missing_2011.any():
-            factor = (1.01 ** 13)  # r=0.01, n=13 (2011->2024)
+            factor = CONFIG.census_compound_factor  # (1+r)^n, single definition in PipelineConfig
             census.loc[missing_2011, "census_pop_2011"] = (
                 census.loc[missing_2011, "census_pop_2024_projected"] / factor
             ).round(0).astype(int)
@@ -182,9 +183,7 @@ def merge_sources() -> Optional[pd.DataFrame]:
     # ── Compute / Load CUF ──────────────────────────────────
     # Priority 1: Real plant CUF data (Option B — genuine ML target)
     # Priority 2: Physics formula (fallback for districts without plant data)
-    real_cuf_path = (
-        Path(__file__).resolve().parents[4] / "data" / "plant_cuf" / "solar_plants_india.csv"
-    )
+    real_cuf_path = PLANT_CUF_CSV
     if real_cuf_path.exists():
         logger.info("Loading real plant CUF data for ML training target ...")
         from solarpipeline.utils import load_real_cuf

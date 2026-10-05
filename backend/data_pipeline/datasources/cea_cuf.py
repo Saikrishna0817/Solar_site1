@@ -3,6 +3,7 @@ SolarSite-India — CEA Monthly Generation + Installed Capacity → Capacity Uti
 NOTE: These are STATE-LEVEL figures.  District-level CUF is an approximation.
 """
 import pandas as pd
+from pathlib import Path
 
 # State-level CEA figures (FY 2023-24)
 DATA = [
@@ -17,7 +18,7 @@ def compute_cuf():
         df["annual_generation_mwh"] / (df["installed_mw"] * 8760)
     ).round(4)
     df["cuf_percent"] = (df["capacity_utilisation_factor"] * 100).round(2)
-    out = "/home/krishna/Desktop/Projects/AAC/Solar_site/backend/data_pipeline/outputs/raw/cea/cuf_state_level.csv"
+    out = Path(__file__).parent.parent / "outputs" / "raw" / "cea" / "cuf_state_level.csv"
     df.to_csv(out, index=False)
     print(df[["state", "installed_mw", "annual_generation_mu", "cuf_percent"]].to_string(index=False))
     print(f"Saved to {out}")

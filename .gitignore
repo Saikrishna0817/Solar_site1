@@ -49,6 +49,13 @@ Desktop.ini
 frontend/node_modules/
 frontend/dist/
 
+# ── ML artifacts (generated — do not commit) ────────────────────
+# ponytail: keep one reference model via GitLFS if API needs it without retraining
+models/*.joblib
+ml_logs/
+reports/*.csv
+reports/figures/
+
 # ── Build artifacts ────────────────────────────────────────────
 build/
 dist/

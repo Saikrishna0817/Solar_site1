@@ -15,7 +15,7 @@ import sys
 import traceback
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent.absolute()))
+sys.path.insert(0, str(Path(__file__).parent.absolute()))
 
 from config.settings import RAW_DIR
 
@@ -44,7 +44,13 @@ def _run_step(step_name, import_path, function_name, centroids_csv, *extra_args)
         logger.info("[%s] Starting collection …", step_name)
         module = __import__(import_path, fromlist=[function_name])
         func = getattr(module, function_name)
-        func(centroids_csv, str(RAW_DIR / step_name.replace("_", "")), *extra_args)
+        outdir = str(RAW_DIR / step_name.replace("_", ""))
+        try:
+            func(centroids_csv, outdir, *extra_args)
+        except TypeError:
+            # ponytail: 1-arg collectors (census_cea.process) fall back here; breaks if a
+            # 2-arg collector raises TypeError internally (double-run) — unify signatures then.
+            func(outdir, *extra_args)
         logger.info("[%s] ✓ Complete.", step_name)
     except ImportError as exc:
         logger.warning("[%s] Module not available — skipping: %s", step_name, exc)
@@ -56,7 +62,7 @@ def main():
     parser = argparse.ArgumentParser(description="SolarSite-India Data Pipeline")
     parser.add_argument(
         "--step",
-        choices=["nasa", "srtm", "worldcover", "modis", "osm", "census", "all"],
+        choices=["nasa", "srtm", "worldcover", "modis", "osm", "census", "aef", "all"],
         default="all",
         help="Which collection step to run (default: all)",
     )
@@ -100,6 +106,9 @@ def main():
 
     if args.step in ("census", "all"):
         steps.append(("census", "datasources.census_cea", "process"))
+
+    if args.step in ("aef", "all"):
+        steps.append(("aef", "datasources.gee_alphaearth", "collect_alphaearth"))
 
     for step_name, module_path, func_name in steps:
         _run_step(step_name, module_path, func_name, centroids_csv)

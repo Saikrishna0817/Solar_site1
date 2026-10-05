@@ -78,11 +78,16 @@ async def health_check():
     from src.ml.config import Config
     cfg = Config()
     model_path = cfg.models_dir / "ridge.joblib"
+    try:
+        from src.api.services.data import load_processed_sites
+        n_districts = len(load_processed_sites())  # cached; counts what /sites actually serves
+    except Exception:
+        n_districts = 0  # ponytail: corrupt CSV degrades to 0, not 500; fix the CSV, not this.
     return {
         "status": "healthy",
         "model_version": "1.0.0",
         "model_loaded": model_path.exists(),
-        "districts_available": 210,
+        "districts_available": n_districts,
     }
 
 

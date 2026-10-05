@@ -1,4 +1,7 @@
-"""Main entry point for ML training."""
+"""Main entry point for ML training.
+Canonical: src/cli/train.py (this wrapper kept for compat).
+ponytail: delete this file when no docs/scripts reference it.
+"""
 import argparse
 import sys
 from pathlib import Path

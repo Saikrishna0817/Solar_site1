@@ -4,6 +4,7 @@ Manual data entry – fills from official Census 2011 tables.
 We only need population and area per district to compute density.
 """
 import pandas as pd
+from pathlib import Path
 
 # Hard-coded values for the 23 GADM districts (pre-reorganization).
 # Format: district, state, population_2011, area_sq_km
@@ -40,7 +41,7 @@ def process_census_data():
     df["population_density_per_sqkm_2011"] = (df["population_2011"] / df["area_sq_km"]).round(1)
     # Apply growth projection (interpolated from Census 2001-2011 trends)
     df["population_density_per_sqkm_2024"] = (df["population_density_per_sqkm_2011"] * 1.12).round(1)
-    out = "/home/krishna/Desktop/Projects/AAC/Solar_site/backend/data_pipeline/outputs/raw/census/census_districts.csv"
+    out = Path(__file__).parent.parent / "outputs" / "raw" / "census" / "census_districts.csv"
     df.to_csv(out, index=False)
     print(f"Saved {len(df)} rows to {out}")
     return df

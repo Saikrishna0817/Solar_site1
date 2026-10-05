@@ -2,6 +2,8 @@
 """
 Optimized ML Training: single best model (Ridge HPO) for near-deterministic CUF.
 Stacking is not beneficial when all models predict identically (R² > 0.99).
+Canonical: src/cli/train.py (this wrapper kept for compat).
+ponytail: delete this file when no docs/scripts reference it.
 """
 import sys
 from pathlib import Path

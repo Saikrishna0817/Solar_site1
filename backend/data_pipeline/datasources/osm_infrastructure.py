@@ -14,7 +14,6 @@ import numpy as np
 from scipy.spatial import KDTree
 
 sys.path.insert(0, str(Path(__file__).parent.parent.absolute()))
-from config import settings
 from utils.logging_helpers import get_logger
 
 logger = get_logger(__name__)
@@ -80,7 +79,8 @@ def compute_proximities(df: pd.DataFrame, roads: gpd.GeoDataFrame,
         return dists[0] / 1000  # convert m → km
 
     results = df.copy()
-    for infra_name, infra_df in [("roads", roads), ("power_lines", power_lines), ("substations", substations)]:
+    # Column names match SOURCE_SCHEMA["osm"] so merge_sources + OSM_RENAMES work unchanged.
+    for infra_name, infra_df in [("road", roads), ("power_line", power_lines), ("substation", substations)]:
         infra_pts = np.column_stack([infra_df["x_utm"].values, infra_df["y_utm"].values])
         tree = KDTree(infra_pts)
         district_pts = np.column_stack([results["x_utm"].values, results["y_utm"].values])
@@ -88,7 +88,7 @@ def compute_proximities(df: pd.DataFrame, roads: gpd.GeoDataFrame,
         results[f"dist_{infra_name}_km"] = (dists / 1000).round(3)
 
     return results[["district", "state", "lat", "lon",
-                     "dist_roads_km", "dist_power_lines_km", "dist_substitutions_km"]]
+                     "dist_road_km", "dist_power_line_km", "dist_substation_km"]]
 
 
 def collect_osm_proximity(shapefile_path: Path, output_dir: Path):

@@ -21,7 +21,7 @@ BOUNDS = {
 # ─── Script ────────────────────────────────────────────────────
 
 def download_and_filter():
-    outdir = Path("/home/krishna/Desktop/Projects/AAC/Solar_site/backend/data_pipeline/outputs/raw/shapefiles")
+    outdir = Path(__file__).parent.parent / "outputs" / "raw" / "shapefiles"
     outdir.mkdir(parents=True, exist_ok=True)
 
     print("Downloading geoBoundaries India ADM2 (735 districts)...")

@@ -54,6 +54,8 @@ NEW_DISTRICTS = {
         ("Palnadu", 7298), ("Nandyal", 9682), ("Sri Sathya Sai", 8925),
         ("Tirupati", 8231), ("Annamayya", 7954),
         ("Parvathipuram Manyam", 3659), ("Markapuram", 2100),
+        # Markapuram real since 31-Dec-2025 (was demand-stage when added); area is an
+        # estimate. Polavaram (28th AP district, same date) pending: no centroids/data yet.
     ],
 }
 
@@ -106,4 +108,4 @@ def process(outdir):
 
 
 if __name__ == "__main__":
-    process("/home/krishna/Desktop/Projects/AAC/Solar_site/backend/data_pipeline/outputs/raw/census_cea")
+    process(Path(__file__).parent.parent / "outputs" / "raw" / "census_cea")
