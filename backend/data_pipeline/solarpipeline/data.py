@@ -17,6 +17,7 @@ from solarpipeline.utils import (
     CONFIG,
     get_logger,
     normalize_district,
+    canonical_district,
     safe_read_csv,
     compute_cuf_theoretical,
 )
@@ -188,22 +189,32 @@ def merge_sources() -> Optional[pd.DataFrame]:
         logger.info("Loading real plant CUF data for ML training target ...")
         from solarpipeline.utils import load_real_cuf
         try:
-            cuf_df = load_real_cuf(str(real_cuf_path))
-            real_districts = set(cuf_df["district"])
-            merged["cuf_real"] = None
-            for idx, row in merged.iterrows():
-                match = cuf_df[cuf_df["district"] == str(row.get("district", "")).strip().lower()]
-                if not match.empty:
-                    merged.at[idx, "cuf"] = match.iloc[0]["annual_cuf"]
-                    merged.at[idx, "cuf_source"] = "cea_plant"
-                else:
-                    merged.at[idx, "cuf"] = compute_cuf_theoretical(
-                        row["avg_ghi_kwh_m2_day"], row["avg_temp_c"]
-                    )
-                    merged.at[idx, "cuf_source"] = "physics"
+            cuf_df = load_real_cuf(str(real_cuf_path)).copy()
+            cuf_df["district"] = [canonical_district(d) for d in cuf_df["district"]]
+            # District label = capacity-weighted mean of its plants' CEA annual CUF.
+            # (Was: first matching plant — arbitrary whenever a district has >1 plant.)
+            cuf_df["_mw"] = pd.to_numeric(
+                cuf_df.get("installed_capacity_mw"), errors="coerce"
+            ).fillna(0.0)
+            cuf_df["_cuf"] = pd.to_numeric(cuf_df.get("annual_cuf"), errors="coerce")
+            grp = cuf_df.assign(_e=cuf_df["_mw"] * cuf_df["_cuf"]).groupby("district")[["_e", "_mw"]].sum()
+            district_cuf = (grp["_e"] / grp["_mw"].where(grp["_mw"] > 0)).dropna().to_dict()
+
+            def _label(row):
+                hit = district_cuf.get(canonical_district(row.get("district")))
+                if hit is not None:
+                    return float(hit), "cea_plant"
+                return compute_cuf_theoretical(
+                    row["avg_ghi_kwh_m2_day"], row["avg_temp_c"]
+                ), "physics"
+
+            merged[["cuf", "cuf_source"]] = pd.DataFrame(
+                merged.apply(_label, axis=1).tolist(),
+                index=merged.index, columns=["cuf", "cuf_source"],
+            )
             plant_count = (merged.get("cuf_source") == "cea_plant").sum()
             phys_count = (merged.get("cuf_source") == "physics").sum()
-            logger.info("CUF source: %d real plants + %d physics-fallback (total %d)",
+            logger.info("CUF source: %d cea_plant + %d physics-fallback (total %d)",
                         plant_count, phys_count, len(merged))
         except Exception as exc:
             logger.warning("Real CUF load failed: %s — falling back to physics formula", exc)

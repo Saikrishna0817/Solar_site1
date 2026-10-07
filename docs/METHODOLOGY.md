@@ -1,0 +1,77 @@
+# Label & Feature Methodology
+
+**Scope:** Telangana + Andhra Pradesh only · 60-district frame (61 names; Polavaram pending) ·
+dataset v2 locked. Anything flagged below is also carried into the limitations section.
+
+## 1. The label
+
+Only one definition is allowed:
+
+```
+CUF = annual actual generation (MWh) / installed capacity (MW) / 8760
+    = annual_generation_mu * 1000 / (installed_capacity_mw * 8760)
+```
+
+- Recomputed from MU/MW in both places that produce a label
+  (`solarpipeline/utils.py::load_real_cuf`, `scripts/build_plant_dataset.py`) so a
+  pre-rounded `annual_cuf` column cannot drift from the definition. Current drift across
+  the in-scope register: **0/13 plants differ by >0.002** (max 0.0005).
+- `cuf_source` records provenance. Allowed values are exactly `cea_plant` and `physics`;
+  `scripts/build_plant_dataset.py` asserts this on every run.
+
+## 2. What may and may not train a model
+
+| Label source | Rows | Trains a model? |
+|---|---|---|
+| `cea_plant` — CEA actual MU ÷ MW ÷ 8760 | 13 plants / 11 districts | **Yes** (default) |
+| `physics` — `GHI × PR / 24`, a formula of the features themselves | 49 districts | **No** — ablation only |
+
+Physics-derived CUF is the cause of the reported R² ≈ 0.996 circularity: it is computed
+from `avg_ghi` and `avg_temp`, which are also features. `DataConfig.cuf_source_filter`
+defaults to `cea_plant`; `--cuf-source all` exists only for ablation and must never be
+quoted as a result.
+
+**Not labels, ever:** TZ-SAM capacity/location, population-weighted district aggregates,
+NISE/state potential scores, or any simulated P50 figure.
+
+## 3. Plant-level dataset
+
+- Built by `scripts/build_plant_dataset.py` → `data/plant_labels/plant_dataset.csv`
+  (13 rows: Telangana 7, Andhra Pradesh 6).
+- Plants are joined to **district** features from `master_dataset_engineered.csv`
+  (60-district frame). Plant metadata that would reconstruct the label
+  (`installed_capacity_mw`, `annual_generation_mu`) is excluded from the feature set.
+- District reorganisation names are matched through
+  `solarpipeline/utils.py::DISTRICT_ALIASES` (`anantapur → anantapuram`,
+  `kadapa → ysr kadapa`, `mahbubnagar → mahabubnagar`) — these three aliases recover
+  all 13 in-scope plants from 8.
+- District-frame labels are the **capacity-weighted mean** of the plants in that
+  district (previously: whichever plant sorted first).
+
+### Ceiling: 13 plants, not 700
+
+Offline, the only CEA sources available are this register (102 plants nationally) and
+daily RE-report PDFs, whose single-day figures are seasonally biased. The CEA API
+endpoints hang and the NREL/PVWatts endpoints do not resolve in this environment.
+`ponytail:` marked in `scripts/build_plant_dataset.py` with the upgrade path: monthly
+CEA RE-generation XLS per plant, then SECI/state DISCOM official registers.
+
+## 4. Temporal mismatches (disclosed, not smoothed)
+
+| Feature/label | Vintage | Mismatch |
+|---|---|---|
+| AP demand | FY 2022–23 | vs solar features dated **March 2024** |
+| Population | Census **2011**; 37/60 districts reverse-estimated from a 2024 projection at ~1%/yr | 13-year gap on the census side |
+| Plant register | Provenance **not recorded** — the file enters the repo in a single commit titled `changing values` (`c56a710`, 2026-08-27) | vintage unverified; cross-check against CEA monthly reports before publication |
+| Weather/radiance | NASA POWER climatology | not a plant operating year |
+
+No interpolation, back-casting, or alignment is applied across these; they are reported
+as-is.
+
+## 5. District frame
+
+`config/settings.py` holds the 33 Telangana + 27 Andhra Pradesh frame = **60**.
+Polavaram (61st AP district) is not present in the source data; the frame is deliberately
+locked at 60 with `ponytail:` ceiling comments at the three places that would need to
+change (`config/settings.py`, `solarpipeline/utils.py::PipelineConfig.expected_districts`,
+`scripts/assign_mandal_new_districts.py`).

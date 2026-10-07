@@ -5,9 +5,9 @@ Canonical entrypoint (the root main.py / train_ensemble.py wrappers are deleted)
 Fixes test-set leakage and collinear feature drops. Supports real CUF targets.
 
 Usage:
-    python -m src.cli.train --models ridge,lasso --feature-selection rfe --n-features 12
+    python -m src.cli.train --models ridge,lasso --feature-selection rfe --n-features 8
     python -m src.cli.train --hpo --hpo-trials 30
-    python -m src.cli.train --models ridge --use-real-cuf
+    python -m src.cli.train --unit district --cuf-source all    # ablation only
 """
 import argparse
 import logging
@@ -55,23 +55,26 @@ def main():
     parser.add_argument("--hpo", action="store_true",
                         help="Run HPO (CV on train only, no test leakage)")
     parser.add_argument("--hpo-trials", type=int, default=30)
-    parser.add_argument("--use-real-cuf", action="store_true",
-                        help="Use real plant CUF data as target")
+    parser.add_argument("--unit", default="plant", choices=["plant", "district"],
+                        help="Unit of analysis (default: plant-level CEA labels)")
+    parser.add_argument("--cuf-source", default="cea_plant", dest="cuf_source",
+                        choices=["cea_plant", "all"],
+                        help="Label provenance. cea_plant (default) = CEA actual only; "
+                             "all adds physics-derived labels for ablation, never for reporting")
     args = parser.parse_args()
 
     config = Config()
     config.trainer.random_state = args.seed
     config.trainer.feature_selection_method = args.feature_selection
     config.trainer.n_features_to_select = args.n_features
-    if args.use_real_cuf:
-        config.data.cuf_source_filter = "cea_plant"
+    config.data.unit = args.unit
+    config.data.cuf_source_filter = args.cuf_source
     setup_logging(config.logs_dir)
 
     logger.info("=" * 60)
     logger.info("SolarSite-India ML Training")
     logger.info(f"Models: {args.models}")
-    if args.use_real_cuf:
-        logger.info("Target: Real plant CUF from CEA data")
+    logger.info(f"Unit: {args.unit} | Labels: {args.cuf_source}")
     logger.info("=" * 60)
 
     dl = SolarDataLoader(config.data)

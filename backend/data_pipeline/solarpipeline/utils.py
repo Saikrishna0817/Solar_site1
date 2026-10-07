@@ -166,6 +166,24 @@ def normalize_district(name) -> Optional[str]:
     return str(name).strip().lower().replace("\u2013", "-").replace("\u2014", "-")
 
 
+# Reorganisation renames: plant registers / CEA reports use the pre-split names,
+# the district frame uses the post-split ones. One map, used by both the label
+# merge (data.py) and the plant-level builder (scripts/build_plant_dataset.py).
+# ponytail: 3 hand-picked aliases; swap for a GADM-DHU crosswalk when the next
+# state reorg lands.
+DISTRICT_ALIASES = {
+    "anantapur": "anantapuram",
+    "kadapa": "ysr kadapa",
+    "mahbubnagar": "mahabubnagar",
+}
+
+
+def canonical_district(name) -> Optional[str]:
+    """normalize_district() + the reorg alias map, so plant and frame names meet."""
+    n = normalize_district(name)
+    return DISTRICT_ALIASES.get(n, n) if n else n
+
+
 def safe_read_csv(filepath: Path, name: str, expected_cols: List[str], logger: logging.Logger) -> Optional[pd.DataFrame]:
     """Read and validate a CSV.  Returns None on any failure after logging an error."""
     if not filepath.exists():
@@ -234,4 +252,13 @@ def load_real_cuf(cuf_csv_path: str = None) -> "pd.DataFrame":
     cuf_df = pd.read_csv(cuf_path)
     cuf_df["district"] = cuf_df["district"].str.strip().str.lower()
     cuf_df["state"] = cuf_df["state"].str.strip()
+
+    # Hard rule: the only valid label is CEA actual MWh / installed MW / 8760.
+    # Recompute from MU rather than trusting a pre-rounded column.
+    mw = pd.to_numeric(cuf_df["installed_capacity_mw"], errors="coerce")
+    mu = pd.to_numeric(cuf_df["annual_generation_mu"], errors="coerce")
+    recomputed = mu * 1000.0 / (mw * 8760.0)
+    cuf_df["annual_cuf"] = recomputed.where(
+        recomputed.notna() & (mw > 0) & mu.notna(), cuf_df["annual_cuf"]
+    )
     return cuf_df

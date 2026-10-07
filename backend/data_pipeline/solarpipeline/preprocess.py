@@ -182,7 +182,7 @@ def preprocess(df: pd.DataFrame) -> Tuple[Optional[pd.DataFrame], Optional[pd.Da
     # Train / test split (FIRST — before any imputation/encoding)
     districts = df["district"].values
     labels = df[["state", TARGET_COL]].copy() if "state" in df.columns else df[[TARGET_COL]].copy()
-    if "cuf_source" in df.columns:  # pass through for --use-real-cuf filtering (never a feature)
+    if "cuf_source" in df.columns:  # label provenance, pass through for --cuf-source filtering (never a feature)
         labels["cuf_source"] = df["cuf_source"].values
     if "excluded" in df.columns:  # L1 flag rides with labels for serving (C2: show the reason)
         labels["excluded"] = df["excluded"].values

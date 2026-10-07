@@ -17,8 +17,16 @@ class DataConfig:
     target_column: str = "cuf"
     id_column: str = "district"
     categorical_column: str = "dominant_land_use"
-    # ponytail: "all" until Phase-2 merge exports cuf_source; then "cea_plant" filters to measured rows.
-    cuf_source_filter: str = "all"  # "all" | "cea_plant"
+    # Only CEA-actual labels may train a model. Physics-derived CUF is a function of
+    # the features themselves (R^2 ~0.99 circularity) and is excluded by default;
+    # `--cuf-source all` exists for ablation only.
+    cuf_source_filter: str = "cea_plant"  # "cea_plant" | "all"
+    # Unit of analysis: "district" = the pre-split 4-file frame in
+    # backend/.../outputs/processed/; "plant" = data/plant_labels/plant_dataset.csv.
+    # Defaults to the frame so bare DataConfig() keeps working — the CLI passes
+    # --unit plant, which is the CEA-label training set.
+    unit: str = "district"
+    plant_dataset_path: str = str(PROJECT_ROOT / "data" / "plant_labels" / "plant_dataset.csv")
 
 
 @dataclass

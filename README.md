@@ -132,18 +132,25 @@ python phase2_3_pipeline.py --step preprocess
 
 ## Train the Models
 
+Labels default to CEA actual only (`--cuf-source cea_plant`); physics-derived CUF is
+excluded from every run and may only be requested for ablation. See
+[`docs/METHODOLOGY.md`](docs/METHODOLOGY.md).
+
 ```bash
 # Canonical entrypoint (root main.py / train_ensemble.py wrappers deleted)
-python -m src.cli.train --models ridge,lasso --feature-selection rfe --n-features 12
+# Default unit = plant (data/plant_labels/plant_dataset.csv, 13 CEA plants)
+python -m src.cli.train --models ridge lasso --feature-selection rfe --n-features 8
 python -m src.cli.train --hpo --hpo-trials 30        # HPO inside CV only
+python -m src.cli.train --unit district --cuf-source all   # ablation only
 ```
 
 ---
 
 ## Outputs
 
-- `backend/data_pipeline/outputs/processed/features_train.csv` — (48 × 43)
-- `backend/data_pipeline/outputs/processed/features_test.csv` — (12 × 43)
+- `data/plant_labels/plant_dataset.csv` — plant rows × district features + `cuf_source`
+- `backend/data_pipeline/outputs/processed/features_train.csv` — (48 × 42)
+- `backend/data_pipeline/outputs/processed/features_test.csv` — (12 × 42)
 - `backend/data_pipeline/outputs/processed/labels_train.csv` — CUF + `cuf_source` provenance
 - `backend/data_pipeline/outputs/reports/*.png` — EDA plots
 

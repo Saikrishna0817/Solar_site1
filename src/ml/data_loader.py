@@ -6,6 +6,7 @@ from typing import Optional, Tuple
 import joblib
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,62 @@ class SolarDataLoader:
     def load(self) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, list]:
         """
         Returns X_train, y_train, X_test, y_test, feature_names.
+
+        Also sets self.train_groups / self.test_groups (district per row) for
+        spatial group CV, and self.train_ids / self.test_ids (row identity).
         """
+        if getattr(self.cfg, "unit", "district") == "plant":
+            return self._load_plant()
+        return self._load_split()
+
+    # ── plant-level unit (one row per CEA plant) ─────────────
+
+    def _load_plant(self):
+        path = Path(self.cfg.plant_dataset_path)
+        if not path.exists():
+            raise FileNotFoundError(
+                f"{path} not found — run: python scripts/build_plant_dataset.py"
+            )
+        df = pd.read_csv(path)
+
+        filt = getattr(self.cfg, "cuf_source_filter", "all")
+        if filt != "all" and "cuf_source" in df.columns:
+            keep = df["cuf_source"] == filt
+            logger.info("cuf_source=%s: kept %d/%d plant rows", filt, keep.sum(), len(keep))
+            df = df[keep]
+        if len(df) < 5:
+            raise ValueError(f"Only {len(df)} labelled plant rows — too few to train.")
+
+        # ponytail: 80/20 unstratified — with 13 rows a 2-class stratified split is
+        # impossible (needs >=31% test). Group CV in the trainer is the real metric.
+        train_df, test_df = train_test_split(
+            df, test_size=0.2, random_state=42, shuffle=True
+        )
+
+        self.train_groups = train_df["district"].values
+        self.test_groups = test_df["district"].values
+        self.train_ids = train_df["plant_name"].values
+        self.test_ids = test_df["plant_name"].values
+
+        y_train = train_df[self.cfg.target_column]
+        y_test = test_df[self.cfg.target_column]
+
+        # String/identity columns drop out automatically; the builder never emits
+        # capacity or generation, both of which reconstruct the CUF label.
+        X_train = train_df.drop(columns=[self.cfg.target_column]).select_dtypes(include="number")
+        X_test = test_df.drop(columns=[self.cfg.target_column]).select_dtypes(include="number")
+        X_test = X_test[X_train.columns]
+
+        feature_names = X_train.columns.tolist()
+        logger.info(
+            "Plant unit: train %d rows, test %d rows, %d features, target [%.4f, %.4f]",
+            len(X_train), len(X_test), len(feature_names), y_train.min(), y_train.max(),
+        )
+        return X_train, y_train, X_test, y_test, feature_names
+
+    # ── district unit (pre-split 4-file frame) ───────────────
+
+    def _load_split(self) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, list]:
         train_df = pd.read_csv(self.cfg.features_train_path)
         train_labels = pd.read_csv(self.cfg.labels_train_path)
         test_df = pd.read_csv(self.cfg.features_test_path)
@@ -47,6 +103,8 @@ class SolarDataLoader:
         # Extract district IDs if needed
         self.train_ids = train_df[self.cfg.id_column].values if self.cfg.id_column in train_df.columns else None
         self.test_ids = test_df[self.cfg.id_column].values if self.cfg.id_column in test_df.columns else None
+        # In the district frame the id IS the district, so groups come for free.
+        self.train_groups, self.test_groups = self.train_ids, self.test_ids
 
         # Drop ID columns
         drop_cols = [c for c in [self.cfg.id_column, self.cfg.categorical_column] if c in train_df.columns]
