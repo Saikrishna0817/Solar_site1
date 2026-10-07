@@ -19,9 +19,12 @@ for d in (RAW_DIR, PROCESSED_DIR, REPORTS_DIR):
     d.mkdir(parents=True, exist_ok=True)
 
 # ─── Data Sources ──────────────────────────────────────────────────
+# Reconciled frame: TS 33 + AP 27 = 60, matching PipelineConfig.expected_districts.
+# ponytail: AP is 28 (and the frame 61) once Polavaram gets a centroid + data row;
+# source of truth is census_cea.NEW_DISTRICTS, update both together.
 DISTRICTS = {
     "Telangana": 33,
-    "Andhra Pradesh": 26,
+    "Andhra Pradesh": 27,
     "Karnataka": 31,
     "Maharashtra": 36,
     "Gujarat": 33,

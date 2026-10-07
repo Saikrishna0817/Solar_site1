@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 SolarSite-India — Unified ML Training Entrypoint.
-Consolidates train_ensemble.py + main.py. Fixes test-set leakage and
-collinear feature drops. Supports real CUF targets.
+Canonical entrypoint (the root main.py / train_ensemble.py wrappers are deleted).
+Fixes test-set leakage and collinear feature drops. Supports real CUF targets.
 
 Usage:
     python -m src.cli.train --models ridge,lasso --feature-selection rfe --n-features 12

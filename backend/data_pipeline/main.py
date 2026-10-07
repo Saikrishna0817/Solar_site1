@@ -10,6 +10,7 @@ Usage:
 """
 
 import argparse
+import inspect
 import logging
 import sys
 import traceback
@@ -45,11 +46,12 @@ def _run_step(step_name, import_path, function_name, centroids_csv, *extra_args)
         module = __import__(import_path, fromlist=[function_name])
         func = getattr(module, function_name)
         outdir = str(RAW_DIR / step_name.replace("_", ""))
-        try:
+        # census_cea.process(outdir) is the only 1-arg collector; the rest take
+        # (centroids_csv, outdir). Pick the arity up front so a TypeError raised
+        # *inside* a collector can never trigger a second, wrong call.
+        if len(inspect.signature(func).parameters) >= 2:
             func(centroids_csv, outdir, *extra_args)
-        except TypeError:
-            # ponytail: 1-arg collectors (census_cea.process) fall back here; breaks if a
-            # 2-arg collector raises TypeError internally (double-run) — unify signatures then.
+        else:
             func(outdir, *extra_args)
         logger.info("[%s] ✓ Complete.", step_name)
     except ImportError as exc:

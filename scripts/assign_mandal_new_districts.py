@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
-Assign 190 GADM mandals to NEW districts using Wikipedia mandal lists
-(TG 33 districts, AP 28 districts incl. Dec-2025 Markapuram/Polavaram).
+Assign 190 GADM mandals to NEW districts using Wikipedia mandal lists.
+Reconciled frame: TG 33 + AP 27 = 60 district rows (PipelineConfig.expected_districts).
+The AP wiki list also carries Polavaram, so the *name* map covers 61 — Polavaram's
+mandals are assigned but have no district data row yet.
 Stdlib only (json/re/csv/difflib). Appends `district_new` to the mandal CSV.
 
 Matching is by normalized mandal name within the same state; difflib fallback
-(>=0.85) with an unmatched report. Old GADM mandals predate splits, so names
-persist 1:1 in the new district lists.
+(cutoff 0.80) with an unmatched/ambiguous report. Old GADM mandals predate splits,
+so names persist 1:1 in the new district lists.
 
 Usage:
     python scripts/assign_mandal_new_districts.py
@@ -181,10 +183,12 @@ def main():
             r["district_new"], r["_method"] = hits[0], "exact"
             continue
         if len(hits) > 1:
-            ambiguous.append((r["mandal"], r["state"], hits))
-            r["district_new"], r["_method"] = hits[0], "ambiguous-first"
+            # Never write a guess: set order is arbitrary, so hits[0] was random.
+            ambiguous.append((r["mandal"], r["state"], sorted(hits)))
+            r["district_new"], r["_method"] = "", "ambiguous"
             continue
         pool = [(m, d) for d in in_scope for m in dist_map[d]]
+        pool.sort()
         best = difflib.get_close_matches(norm, [m for m, _ in pool], n=1, cutoff=0.80)
         if best:
             r["district_new"] = next(d for m, d in pool if m == best[0])

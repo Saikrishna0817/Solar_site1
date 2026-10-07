@@ -6,9 +6,9 @@ AI-powered solar energy site selection platform for India.
 
 SolarSite-India is a data-driven solar site suitability platform that uses a machine learning ensemble to rank potential solar deployment locations. The project is being developed in stages, beginning with Telangana and Andhra Pradesh (60 districts) as the initial pilot region before scaling to national coverage.
 
-**Current scope**: 60 districts (33 Telangana + 27 Andhra Pradesh: 26 Apr-2022 districts + Markapuram, real since Dec-2025; Polavaram pending data), 42 engineered features, 48 training samples.
+**Current scope**: 60 districts (33 Telangana + 27 Andhra Pradesh: 26 Apr-2022 districts + Markapuram, real since Dec-2025; Polavaram pending data → 61st), 42 engineered features.
 
-**Status**: Data pipeline (Stages 1–3) is complete and production-ready. The ML model training scripts are next on the roadmap.
+**Status**: Data pipeline complete; models **are** trained (`python -m src.cli.train`) and reported honestly. Labels are CEA-actual only — the earlier R² = 0.996 came from physics-derived labels that duplicated the features, and has been retrained away. Next is the paper, not training.
 
 ### Aspirational Scope (Documented in `/docs`)
 The full project documentation describes a national-scale system with:
@@ -39,9 +39,12 @@ backend/data_pipeline/
 
 frontend/                    ← React + Vite + Tailwind + Framer Motion
 ├── src/pages/              ← Dashboard, SiteAnalysis, etc.
-└── src/services/           ← API layer (mock mode by default — no backend yet)
+└── src/services/           ← API client (mock mode by default)
 
-tests/                       ← pytest suite (29/29 passing)
+src/api/                     ← FastAPI server (5 endpoints; not wired to the frontend yet)
+src/cli/train.py             ← Canonical ML training entrypoint
+
+tests/                       ← pytest suite (35/35 passing)
 ```
 
 ---
@@ -50,35 +53,12 @@ tests/                       ← pytest suite (29/29 passing)
 
 | Topic | Decision |
 |-------|----------|
-| **Target variable** | CUF computed from physics: `GHI × PR(T_cell) / 24` (not actual plant generation data — see `/docs`) |
-| **Training data** | 60 district-level records (48 train / 12 test). ML model training is next step. |
+| **Target variable** | CUF = actual CEA generation ÷ installed MW ÷ 8760. Physics-derived CUF exists in the data (`cuf_source = "physics"`) but is **never** used as a training label. |
+| **Training data** | CEA-actual labels only. District frame 60 rows (48 train / 12 test); plant-level labels are being built toward 700+ CEA plants. |
 | **Features** | 42 total: 27 raw source features + 15 engineered composite features |
 | **Census gap** | 37/60 districts missing 2011 census; reverse-estimated from 2024 projection using 1%/yr compound growth |
 | **Infrastructure distances** | Heuristic placeholder (real OSMnx integration is a future step) |
 | **Leakage-free** | All preprocessing stats (imputation, scaling, encoding) computed on train split only |
-
----
-
-## Architecture
-
-```
-backend/data_pipeline/
-├── solarpipeline/          ← Modular data pipeline package
-│   ├── data.py             ← Merges 6 source datasets + computes CUF
-│   ├── features.py         ← Engineers composite features
-│   ├── eda.py              ← Generates EDA visualisations
-│   ├── preprocess.py         ← Train/test split, impute, scale (leakage-free)
-│   └── core.py             ← Orchestrator entrypoint
-├── phase2_3_pipeline.py      ← Thin CLI entrypoint ( --step all )
-├── main.py                   ← Phase-1 data collection driver
-└── config/settings.py        ← Shared paths & constants
-
-frontend/                    ← React + Vite + Tailwind + Framer Motion
-├── src/pages/              ← Dashboard, SiteAnalysis, etc.
-└── src/services/           ← API layer (mock mode by default)
-
-tests/                       ← pytest suite
-```
 
 ---
 
@@ -128,7 +108,7 @@ npm run dev
 
 | Suite | Result |
 |-------|--------|
-| Unit (utils, features, pipeline) | ✅ 29/29 passing |
+| Unit (utils, features, leakage, pipeline) | ✅ 35/35 passing |
 | End-to-end pipeline | ✅ Passes on full 60-district dataset |
 
 ---
@@ -136,6 +116,8 @@ npm run dev
 ## Configurable Pipeline
 
 ```bash
+cd backend/data_pipeline
+
 # Phase 1: collect raw data
 python main.py --step all
 
@@ -148,11 +130,21 @@ python phase2_3_pipeline.py --step preprocess
 
 ---
 
+## Train the Models
+
+```bash
+# Canonical entrypoint (root main.py / train_ensemble.py wrappers deleted)
+python -m src.cli.train --models ridge,lasso --feature-selection rfe --n-features 12
+python -m src.cli.train --hpo --hpo-trials 30        # HPO inside CV only
+```
+
+---
+
 ## Outputs
 
-- `backend/data_pipeline/outputs/processed/features_train.csv` — (48 × 36)
-- `backend/data_pipeline/outputs/processed/features_test.csv` — (12 × 36)
-- `backend/data_pipeline/outputs/processed/labels_train.csv` — CUF + state labels
+- `backend/data_pipeline/outputs/processed/features_train.csv` — (48 × 43)
+- `backend/data_pipeline/outputs/processed/features_test.csv` — (12 × 43)
+- `backend/data_pipeline/outputs/processed/labels_train.csv` — CUF + `cuf_source` provenance
 - `backend/data_pipeline/outputs/reports/*.png` — EDA plots
 
 ---

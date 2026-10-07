@@ -1,6 +1,0 @@
-Model,Train R²,Test R²,Test RMSE,Test MAE
-Ridge (HPO),0.9999,0.9949,0.0004,0.0003
-Lasso,0.9995,0.9978,0.0002,0.0002
-ElasticNet,0.9953,0.9962,0.0003,0.0002
-RandomForest (HPO),0.9714,0.9686,0.0009,0.0006
-Stacking Ensemble,0.0099,0.0096,0.005,0.004

@@ -23,7 +23,7 @@ def _suggest(trial, name: str, config):
             "rf_min_samples_leaf": trial.suggest_int("rf_min_samples_leaf", 1, 10),
         }
     elif name == "ridge":
-        # Shared space 1e-6..100 (matches train_ensemble.py; optimum lives near 1e-4).
+        # Shared space 1e-6..100; optimum lives near 1e-4.
         return {
             "ridge_alpha": trial.suggest_float("ridge_alpha", 1e-6, 100.0, log=True),
         }

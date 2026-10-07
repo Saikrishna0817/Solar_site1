@@ -53,6 +53,9 @@ class PipelineConfig:
     """All tunable constants used across the pipeline.  Override via env vars or kwargs."""
 
     # ── Data ──
+    # Single source of truth for the district frame. Checked by data.py and the tests.
+    # ponytail: 60 = TS 33 + AP 27; bump to 61 (AP 28) when Polavaram's centroid and
+    # NASA POWER/SRTM/WorldCover rows land — add the row, then change this one number.
     expected_districts: int = 60
     census_growth_rate: float = 0.01  # 1% annual compound growth
     census_projection_years: int = 13  # 2011 -> 2024
