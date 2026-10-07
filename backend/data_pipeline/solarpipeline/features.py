@@ -2,6 +2,10 @@
 Feature engineering module.
 Derives composite and domain-specific features from raw merged data.
 All magic numbers are read from the shared ``PipelineConfig``.
+
+Phase 2: composite scores rebuilt from the label's own inputs are NOT created here
+(``effective_ghi``, ``solar_potential_score`` — see docs/METHODOLOGY.md §6). Raw
+GHI/DNI/temp/humidity stay; the model should fit those, not a hand-written proxy for them.
 """
 
 from typing import Any, Callable
@@ -92,12 +96,12 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
                  lambda d: d["avg_humidity_pct"] * d["max_temp_c"] / 1000)
 
     # ═══════════════ NEW FEATURES ═══════════════
-    # 9. Effective GHI (temperature-adjusted)
-    _safe_assign(
-        df, "effective_ghi",
-        lambda d: d["avg_ghi_kwh_m2_day"] *
-        (1 + CONFIG.temp_coefficient * np.maximum(0, d["avg_temp_c"] - 25))
-    )
+    # 9. Effective GHI / 13. Solar potential score — REMOVED (Phase 2).
+    # Both are hand-built re-encodings of the physics label's inputs (GHI, temp):
+    # effective_ghi = GHI * temp_derate, solar_potential_score = a 4-term average of
+    # normalised GHI/DNI/temp/humidity. A model that picks them up is learning that
+    # baked-in assumption (and the physics formula), not site signal — and both were
+    # already collinear-dropped at |r|>0.95. Raw GHI/DNI/temp/humidity stay as inputs.
 
     # 10. Slope-aspect interaction
     _safe_assign(df, "slope_aspect_interaction",
@@ -112,14 +116,7 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     _safe_assign(df, "aridity_index",
                  lambda d: d["annual_rainfall_mm"] / (d["avg_temp_c"] + 1))
 
-    # 13. Solar potential score (composite of GHI, DNI, temp, humidity)
-    def _solar_score(d):
-        ghi_norm = d["avg_ghi_kwh_m2_day"] / 7.0
-        dni_norm = d["avg_dni_kwh_m2_day"] / 5.0
-        temp_penalty = np.maximum(0, 1 - (d["avg_temp_c"] - 25) * 0.02)
-        humidity_penalty = 1 - d["avg_humidity_pct"] / 100.0
-        return (ghi_norm + dni_norm + temp_penalty + humidity_penalty) / 4.0
-    _safe_assign(df, "solar_potential_score", _solar_score, fallback=0.5)
+    # 13. Solar potential score — see the Phase 2 note above: removed, not silently kept.
 
     # 14. Cloud cover penalty
     _safe_assign(df, "cloud_cover_penalty",

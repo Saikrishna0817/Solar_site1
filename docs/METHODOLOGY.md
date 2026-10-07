@@ -75,3 +75,26 @@ Polavaram (61st AP district) is not present in the source data; the frame is del
 locked at 60 with `ponytail:` ceiling comments at the three places that would need to
 change (`config/settings.py`, `solarpipeline/utils.py::PipelineConfig.expected_districts`,
 `scripts/assign_mandal_new_districts.py`).
+
+## 6. Features
+
+- **Composite scores built from the label's own inputs are not features.**
+  `effective_ghi` (GHI × temperature derate) and `solar_potential_score` (a hand-written
+  4-term average of normalised GHI/DNI/temp/humidity) were removed in Phase 2: a model
+  that selects them is reproducing the baked-in assumption (and, for the physics label,
+  the formula) rather than learning site signal. Raw GHI/DNI/temp/humidity remain.
+  `installed_solar_capacity_mw` is dropped as a target leaker (audit #3).
+- Correlation filter: greedy Pearson > 0.95 drop-one, fitted on **training rows only**.
+- **Feature selection is refit inside every CV fold** (`Trainer.fit_selector` called
+  from `Trainer.cross_validate`), so the CV score cannot be propped up by a selector
+  that has already seen the held-out rows. Collinear filtering is likewise re-fitted
+  per fold. Selection for the final deployed model is fitted on all training rows.
+
+### Phase 2 ceilings (environment-blocked)
+
+| Plan item | What runs today | Upgrade path |
+|---|---|---|
+| Zonal statistics instead of centroid sampling | district centroid + 500 m/1 km buffer means | `rasterio`/`rasterstats` + the rasters — `rasterio` is not installed and the GEE credentials are absent (`ee` is installed, `~/.config/earthengine` is not) |
+| WorldPop 2020 instead of Census 2011 | Census 2011, 37/60 districts reverse-estimated | direct GeoTIFF from data.worldpop.org + `rasterio` (no GEE needed) |
+| Exclusion rules at site scale | district land-cover averages | GEE WorldCover/OSM sampled at candidate points — GEE credentials required |
+| AlphaEarth embeddings | unused | only after PCA to ~8 dims, and only if the rows justify 8 more dimensions |

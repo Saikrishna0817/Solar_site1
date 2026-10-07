@@ -67,7 +67,8 @@ class PipelineConfig:
     infra_substation_weight: float = 0.2
     infra_weights_sum: float = 1.0
     forest_prox_scale: float = 100.0
-    temp_coefficient: float = -0.0045
+    # temp_coefficient removed with effective_ghi (Phase 2) — it only ever fed that
+    # hand-built derate, and the raw temp column stays a feature instead.
 
     # ── CUF computation ──
     cuf_pr_base: float = 0.80
