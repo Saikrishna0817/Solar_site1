@@ -1,4 +1,11 @@
-// 42 Feature Definitions for the ML Model
+// Illustrative feature catalog for the Methodology explorer — NOT the training
+// schema. The trained model uses KEY_METRICS.featuresUsed (43) engineered
+// columns from the processed feature table (avg_ghi_kwh_m2_day, elevation_m,
+// dist_nearest_road_km, ...). The `importance` and `weight` fields below are
+// hand-assigned display values, not model-derived importances.
+// ponytail: catalog and training columns are maintained by hand in two places;
+// ceiling = they drift apart silently. Upgrade path = generate this file from
+// the feature table's header row in scripts/update_frontend_metrics.py.
 export const featureDefinitions = [
   // Solar Resource (5)
   { id: 1, name: 'GHI', fullName: 'Global Horizontal Irradiance', unit: 'kWh/m²/day', category: 'solar', description: 'Total solar radiation on a horizontal surface', range: '3.5 - 6.0', importance: 'Critical', weight: 0.15 },

@@ -30,8 +30,8 @@ const Results = () => {
   const [expandedCase, setExpandedCase] = useState(null);
 
   const metrics = [
-    { label: 'Plants Tracked', value: KEY_METRICS.sitesAnalyzed, dec: 0, desc: 'Operational solar plants (CEA)', color: '#10B981' },
-    { label: 'Districts', value: KEY_METRICS.districtsAnalyzed, dec: 0, desc: 'GADM all-India centroids', color: '#F5A623' },
+    { label: 'Plants Tracked', value: KEY_METRICS.sitesAnalyzed, dec: 0, desc: 'CEA plants with actual CUF labels', color: '#10B981' },
+    { label: 'Districts', value: KEY_METRICS.districtsAnalyzed, dec: 0, desc: 'Districts with model features', color: '#F5A623' },
     { label: 'Features', value: KEY_METRICS.featuresUsed, dec: 0, desc: 'Raw + engineered features', color: '#06B6D4' },
     { label: 'Solar Capacity', value: KEY_METRICS.totalCapacityGW, dec: 2, suffix: ' GW', desc: 'MNRE national total (31.07.2026)', color: '#8B5CF6' },
   ];
@@ -42,35 +42,28 @@ const Results = () => {
     return [...enrichedSites].sort((a, b) => sortOrder === 'desc' ? b[sortBy] - a[sortBy] : a[sortBy] - b[sortBy]).slice(0, 20);
   }, [sortBy, sortOrder]);
 
-  const globalSHAP = [
-    { feature: 'GHI (kWh/m²/day)', value: '0.245' },
-    { feature: 'Grid Distance (km)', value: '-0.180' },
-    { feature: 'Land Availability', value: '0.155' },
-    { feature: 'DNI (kWh/m²/day)', value: '0.142' },
-    { feature: 'Slope (°)', value: '-0.128' },
-    { feature: 'Sunshine Hours', value: '0.115' },
-    { feature: 'Road Distance (km)', value: '-0.098' },
-    { feature: 'Temperature (°C)', value: '-0.085' },
-    { feature: 'Substation Capacity', value: '0.072' },
-    { feature: 'Policy Incentives', value: '0.065' },
-  ];
+  const globalSHAP = null; // real global importances need the trained backend — see the card below
 
+  // Cases 1-2 walk through the demo site list (mockSites.js): their scores are
+  // mock display values, not model output — the trained model predicts
+  // plant-level CUF for 13 CEA plants, not all-India suitability.
+  // Case 3 cites the NISE 2025 report and MNRE installed capacity.
   const cases = [
-    { id: 1, title: 'Bhadla Solar Park', sub: "World's Largest Solar Park — Validation", state: 'Rajasthan', score: 0.94, cap: '2,245 MW',
-      finding: 'Model correctly identified Bhadla as highest-scoring (0.94), validating against real-world status as world\'s largest solar park.',
-      details: 'GHI: 5.72 | DNI: 5.45 | Elevation: 220m | Grid: 8km | LCOE: ₹2.15/kWh' },
-    { id: 2, title: 'Mahbubnagar, Telangana', sub: 'Emerging Solar Hub — Discovery', state: 'Telangana', score: 0.83, cap: '100 MW',
-      finding: 'Model identified Mahbubnagar as Telangana\'s top solar location, aligning with TSREDCO solar park proposals.',
-      details: 'GHI: 5.38 | DNI: 5.08 | Elevation: 440m | Grid: 10km | LCOE: ₹2.42/kWh' },
-    { id: 3, title: '500 GW Target Assessment', sub: 'National Policy Scenario', state: 'Pan-India', score: null, cap: '3,343 GWp',
+    { id: 1, title: 'Bhadla Solar Park', sub: "World's Largest Solar Park — demo walkthrough", state: 'Rajasthan', score: 0.94, cap: null, demo: true,
+      finding: 'Demo data, not a model prediction: the mock site list ranks Bhadla first at 0.94, consistent with its real-world status as the world\'s largest solar park.',
+      details: 'Mock values (mockSites.js): GHI 5.72 | DNI 5.45 | Elevation 220m | Grid 8km | LCOE ₹2.15/kWh' },
+    { id: 2, title: 'Mahbubnagar, Telangana', sub: 'Emerging Solar Hub — demo walkthrough', state: 'Telangana', score: 0.83, cap: null, demo: true,
+      finding: 'Demo data, not a model prediction: the mock site list ranks Mahbubnagar as Telangana\'s top location.',
+      details: 'Mock values (mockSites.js): GHI 5.38 | DNI 5.08 | Elevation 440m | Grid 10km | LCOE ₹2.42/kWh' },
+    { id: 3, title: '500 GW Target Assessment', sub: 'National Policy Scenario (published)', state: 'Pan-India', score: null, cap: '3,343 GWp',
       finding: 'India has 3,343 GWp deployable ground-mounted solar potential (NISE 2025) across 27,571 km², exceeding the 500 GW target. Top: Rajasthan (829 GW), Maharashtra (487 GW), Madhya Pradesh (319 GW).',
-      details: 'NISE 2025 report | 27,571 km² feasible | 6.69% wasteland used | 3,343 GWp total potential | 32.9% installed (164.6 GW solar)' },
+      details: 'NISE 2025 report | 27,571 km² feasible | 6.69% wasteland used | 3,343 GWp total potential | 164.59 GW solar installed (MNRE, 31.07.2026)' },
   ];
 
   return (
     <div className="min-h-screen pt-24 pb-16 bg-space-deep">
       <div className="container-custom">
-        <SectionTitle title="Results & Analysis" subtitle={`Key findings from our weighted composite index and Ridge regression model trained on ${KEY_METRICS.sitesAnalyzed} operational solar plants (CEA/MNRE data)`} />
+        <SectionTitle title="Results & Analysis" subtitle={`Findings from our ${KEY_METRICS.modelType} model — trained on ${KEY_METRICS.sitesAnalyzed} CEA plants, evaluated with ${KEY_METRICS.evaluationMethod}; rows tagged "demo" are mock-site walkthroughs`} />
 
         {/* Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-16">
@@ -90,19 +83,29 @@ const Results = () => {
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-16">
           <GlassCard hover={false}>
-            <h3 className="font-display font-semibold text-txt-primary text-lg mb-2">Predicted vs Actual Suitability</h3>
-            <p className="text-txt-dim text-sm mb-4">Model validation on holdout set — training on {KEY_METRICS.sitesAnalyzed} real plant CUF targets (CEA data)</p>
+            <h3 className="font-display font-semibold text-txt-primary text-lg mb-2">Predicted vs Actual CUF</h3>
+            <p className="text-txt-dim text-sm mb-4">Pooled out-of-fold predictions vs CEA labels from {KEY_METRICS.evaluationMethod}</p>
             <ScatterPlot />
           </GlassCard>
           <GlassCard hover={false}>
             <h3 className="font-display font-semibold text-txt-primary text-lg mb-2">Global Feature Importance (SHAP)</h3>
             <p className="text-txt-dim text-sm mb-4">Average impact on model output across all predictions</p>
-            <SHAPWaterfall data={globalSHAP} />
+            {globalSHAP?.length ? (
+              <SHAPWaterfall data={globalSHAP} />
+            ) : (
+              <div className="h-[360px] flex items-center justify-center text-center px-8">
+                <p className="text-txt-dim text-sm leading-relaxed max-w-sm">
+                  Global SHAP importances require the trained backend — set{' '}
+                  <span className="font-mono text-txt-secondary">VITE_USE_MOCK=false</span> and run
+                  the API. No numbers are shown until the model serves them.
+                </p>
+              </div>
+            )}
           </GlassCard>
         </div>
 
         {/* State Bar Chart */}
-        <SectionTitle title="State-wise Solar Potential" subtitle="Top 12 states by utility-scale potential (GW)" gradient="tech" />
+        <SectionTitle title="State-wise Solar Potential" subtitle="Top 12 states by utility-scale potential (GW) — NISE 'Solar PV Potential of India (Ground Mounted) 2025'" gradient="tech" />
         <GlassCard hover={false} className="mb-16">
           <div style={{ height: 400 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -120,7 +123,7 @@ const Results = () => {
         </GlassCard>
 
         {/* Top Sites Table */}
-        <SectionTitle title="Top Ranked Sites" subtitle="Highest scoring solar sites identified by the weighted composite index" gradient="solar" />
+        <SectionTitle title="Top Ranked Sites" subtitle="Demo data — 50 mock sites from mockSites.js; scores, LCOE and NPV are placeholders, not model output" gradient="solar" />
         <GlassCard hover={false} className="mb-16 overflow-x-auto">
           <div className="flex items-center gap-4 mb-4">
             <span className="text-txt-dim text-sm">Sort:</span>
@@ -153,7 +156,7 @@ const Results = () => {
         </GlassCard>
 
         {/* Case Studies */}
-        <SectionTitle title="Case Studies" subtitle="Real-world validation and key findings" gradient="mixed" />
+        <SectionTitle title="Case Studies" subtitle="Demo walkthroughs of the mock site list, plus published potential findings" gradient="mixed" />
         <div className="space-y-4">
           {cases.map((cs, i) => (
             <motion.div key={cs.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
@@ -162,6 +165,7 @@ const Results = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-display font-bold text-xl text-txt-primary">{cs.title}</h3>
+                      {cs.demo && <span className="text-xs font-mono px-2 py-0.5 rounded bg-space-light/40 text-txt-dim">demo</span>}
                       {cs.score && <span className="text-xs font-bold font-mono px-2 py-0.5 rounded"
                         style={{ color: getSuitabilityColor(cs.score), background: `${getSuitabilityColor(cs.score)}15` }}>
                         {formatScore(cs.score)}</span>}

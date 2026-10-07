@@ -7,20 +7,20 @@ import { KEY_METRICS } from '../data/constants';
 const About = () => {
   const techStack = [
     { category: 'Frontend', items: ['React 18', 'Three.js / R3F', 'Framer Motion', 'Recharts', 'Leaflet', 'Tailwind CSS 3'] },
-    { category: 'Backend', items: ['Python 3.10+', 'FastAPI', 'scikit-learn', 'Ridge Regression', 'SHAP', 'Pandas/NumPy'] },
+    { category: 'Backend', items: ['Python 3.10+', 'FastAPI', 'scikit-learn', 'Elastic Net', 'SHAP', 'Pandas/NumPy'] },
     { category: 'Data Sources', items: ['NASA POWER', 'SRTM DEM', 'ISRO Bhuvan', 'CEA/PGCIL', 'IMD Weather', 'Census India'] },
-    { category: 'ML Models', items: ['Ridge Regression', 'Random Forest', 'LASSO', 'Weighted Composite Index', 'SHAP Explainability', '5-Fold CV'] },
+    { category: 'ML Models', items: ['Elastic Net', 'LASSO', 'Ridge', 'Random Forest', 'XGBoost', 'Leave-One-District-Out CV'] },
   ];
 
   const researchHighlights = [
     { label: 'Training Samples', value: `${KEY_METRICS.sitesAnalyzed} solar plants` },
     { label: 'Feature Dimensions', value: `${KEY_METRICS.featuresUsed} input features` },
-    { label: 'Model Type', value: 'Ridge + WCI' },
+    { label: 'Model Type', value: KEY_METRICS.modelType },
     { label: 'Districts Analyzed', value: `${KEY_METRICS.districtsAnalyzed} districts` },
     { label: 'Coverage', value: `${KEY_METRICS.statesWithPlants} states` },
     { label: 'Tracked Capacity', value: `${KEY_METRICS.totalCapacityGW} GW` },
-    { label: 'Grid Resolution', value: '5 km × 5 km' },
-    { label: 'Temporal Span', value: '20-year weather data' },
+    { label: 'Evaluation', value: 'Leave-one-district-out CV' },
+    { label: 'Serving Gate', value: 'CV MAE must beat C0 physics baseline' },
   ];
 
   return (
@@ -32,6 +32,10 @@ const About = () => {
         />
 
         {/* Mission */}
+        {/* ponytail: the "6-12 months / ₹50-100 lakhs / 70% failure rate" figures
+            are unsourced industry folklore, not measured by this project;
+            ceiling = they read as study results. Upgrade path = cite a published
+            site-selection cost/time study or drop the sentence. */}
         <GlassCard hover={false} className="mb-10 max-w-4xl mx-auto">
           <h3 className="font-display font-bold text-2xl text-txt-primary mb-4 gradient-text-solar">Our Mission</h3>
           <p className="text-txt-secondary text-base leading-relaxed mb-4">
@@ -40,10 +44,11 @@ const About = () => {
             expensive, and subjective — taking 6-12 months and ₹50-100 lakhs per site assessment, with a 70% failure rate.
           </p>
           <p className="text-txt-secondary leading-relaxed">
-            <strong className="text-txt-primary">SolarSite-India</strong> uses a weighted composite index and Ridge regression model
-            trained on real CUF data from {KEY_METRICS.sitesAnalyzed} operational solar plants to evaluate solar potential across {KEY_METRICS.districtsAnalyzed} districts.
-            Our platform enables data-driven decision-making in minutes rather than months, at zero cost,
-            with transparent feature importance explanations for every recommendation.
+            <strong className="text-txt-primary">SolarSite-India</strong> trains an elastic-net regression on CEA-actual
+            CUF from {KEY_METRICS.sitesAnalyzed} operational solar plants, evaluated with leave-one-district-out
+            cross-validation over a {KEY_METRICS.districtsAnalyzed}-district feature frame.
+            The API only serves a model whose CV MAE beats the pvlib C0 physics baseline, and every served
+            prediction can be unpacked with SHAP feature attributions.
           </p>
         </GlassCard>
 
@@ -101,9 +106,7 @@ const About = () => {
               SolarSite-India: AI-Optimized Solar Energy Site Selection Using Real-Plant CUF Data
             </h3>
             <p className="text-txt-dim text-sm mb-6">
-              A framework for identifying optimal solar deployment locations across India using 42 geospatial,
-              climatic, and economic features, trained on real Capacity Utilization Factor (CUF) data from
-              {KEY_METRICS.sitesAnalyzed} operational solar plants.
+              A framework for identifying optimal solar deployment locations across India using {KEY_METRICS.featuresUsed} geospatial, climatic, and economic features, trained on real Capacity Utilization Factor (CUF) data from {KEY_METRICS.sitesAnalyzed} operational solar plants.
             </p>
 
             <div className="glass p-4 rounded-lg mb-6 text-left">
@@ -111,7 +114,7 @@ const About = () => {
               <ul className="space-y-2 text-txt-secondary text-base">
                 <li className="flex items-start gap-2">
                   <span className="text-solar-gold mt-0.5">•</span>
-                  42-feature multi-dimensional site characterization schema
+                  {KEY_METRICS.featuresUsed}-feature multi-dimensional site characterization schema
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-solar-gold mt-0.5">•</span>
@@ -119,7 +122,7 @@ const About = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-solar-gold mt-0.5">•</span>
-                  Ridge regression + RF feature importance for transparent scoring
+                  Serving gate: CV MAE must beat the pvlib C0 physics baseline, with SHAP attributions for every prediction
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-solar-gold mt-0.5">•</span>

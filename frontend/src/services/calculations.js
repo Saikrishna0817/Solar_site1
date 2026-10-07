@@ -1,7 +1,10 @@
 // Client-side suitability scoring calculations
-// Mirrors the ML model's scoring logic for the interactive calculator
-
-import { MODEL_WEIGHTS } from '../data/constants';
+// Heuristic for the on-page "Try It Yourself" calculator (6 sliders) — this is
+// NOT the trained model and not model output. The served model is the
+// elastic_net plant-level CUF regressor in KEY_METRICS.modelType.
+// ponytail: the weights below are hand-picked, fitted to nothing; ceiling = a
+// visitor can read the gauge as a model prediction. Upgrade path = score the
+// calculator through /v1/predict and keep this block as a labeled fallback.
 
 // Normalize a value to 0-1 range
 const normalize = (value, min, max, inverse = false) => {

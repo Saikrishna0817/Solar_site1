@@ -88,11 +88,16 @@ const SuitabilityCalculator = ({ className = '' }) => {
           </div>
 
           <span
-            className="px-4 py-1.5 rounded-full text-sm font-semibold mb-6"
+            className="px-4 py-1.5 rounded-full text-sm font-semibold"
             style={{ backgroundColor: `${color}20`, color }}
           >
             {label}
           </span>
+
+          {/* Not the trained model — say so next to the number it produces */}
+          <p className="text-xs text-txt-dim mb-6 mt-2">
+            Heuristic calculator output — not a model prediction
+          </p>
 
           {/* Breakdown bars */}
           <div className="w-full space-y-3">

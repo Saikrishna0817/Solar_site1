@@ -1,0 +1,55 @@
+{
+  "c0_mae": 0.007467773245842854,
+  "c0_n_districts": 11,
+  "threshold": "cv_mae < c0_mae",
+  "models": [
+    {
+      "model_name": "ridge",
+      "cv_mae": 0.00805782308228968,
+      "cv_r2": -0.25058377836691115,
+      "test_r2": 0.15325334072345953,
+      "beats_c0": false
+    },
+    {
+      "model_name": "lasso",
+      "cv_mae": 0.007117536274994493,
+      "cv_r2": -0.0377095302164665,
+      "test_r2": 0.16010460433739304,
+      "beats_c0": true
+    },
+    {
+      "model_name": "elastic_net",
+      "cv_mae": 0.006060952726855813,
+      "cv_r2": 0.19528533854113983,
+      "test_r2": 0.11882493250642301,
+      "beats_c0": true
+    },
+    {
+      "model_name": "random_forest",
+      "cv_mae": 0.008260781829458688,
+      "cv_r2": -0.4882359116365844,
+      "test_r2": 0.05876862253886039,
+      "beats_c0": false
+    },
+    {
+      "model_name": "xgboost",
+      "cv_mae": 0.008587085315918293,
+      "cv_r2": -0.5631393965193146,
+      "test_r2": -0.04833042529537934,
+      "beats_c0": false
+    },
+    {
+      "model_name": "voting",
+      "cv_mae": 0.007494415281075716,
+      "cv_r2": -0.28672938934730174,
+      "test_r2": 0.14276935610868913,
+      "beats_c0": false
+    }
+  ],
+  "n_features": 43,
+  "n_train_rows": 10,
+  "unit": "plant",
+  "cuf_source": "cea_plant",
+  "evaluation_method": "leave-one-district-out CV (pooled out-of-fold)",
+  "generated_at": "2026-10-07T19:52:48+00:00"
+}

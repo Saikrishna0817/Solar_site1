@@ -2,11 +2,11 @@ import { useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import MapView from '../components/map/MapView';
-import GlassCard from '../components/ui/GlassCard';
 import useMapData from '../hooks/useMapData';
 import { suitabilityToColor } from '../utils/colorScale';
+import { canonicalDistrict } from '../utils/districts';
 import { formatCapacity, formatScore } from '../utils/formatters';
-import { INDIAN_STATES, getSuitabilityLabel } from '../data/constants';
+import { INDIAN_STATES } from '../data/constants';
 
 const BBOX_SIZE_KM = 5; // bounding box half-size in km
 const KM_TO_DEG_LAT = 1 / 111.32;
@@ -131,6 +131,26 @@ const Dashboard = () => {
     };
   }, [polygonPoints, filteredSites]);
 
+  // ─── Choropleth values: mean suitability per district over filteredSites ───
+  // Districts present in the geometry but with no site left after the filters
+  // are simply absent here, so MapView renders them neutral (no-data).
+  const districtValues = useMemo(() => {
+    const byDistrict = new Map();
+    filteredSites.forEach((site) => {
+      const district = canonicalDistrict(site.district);
+      if (!district) return;
+      const acc = byDistrict.get(district) || { district, state: site.state, sum: 0, count: 0 };
+      acc.sum += site.suitability;
+      acc.count += 1;
+      byDistrict.set(district, acc);
+    });
+    return [...byDistrict.values()].map(({ district, state, sum, count }) => ({
+      district,
+      state,
+      value: sum / count,
+    }));
+  }, [filteredSites]);
+
   return (
     <div className="min-h-screen pt-20 bg-space-deep">
       {/* ═══════ Quick Stats Bar ═══════ */}
@@ -164,6 +184,7 @@ const Dashboard = () => {
         <div className="flex-1 relative">
           <MapView
             sites={filteredSites}
+            districts={districtValues}
             selectedSite={selectedSite}
             onSiteSelect={setSelectedSiteId}
             bboxBounds={bboxBounds}
@@ -512,6 +533,7 @@ const Dashboard = () => {
             className="absolute bottom-4 left-4 z-[1000] glass-strong rounded-xl px-4 py-3"
           >
             <p className="text-xs text-txt-dim mb-2 font-semibold uppercase tracking-wider">Suitability Score</p>
+            <p className="text-xs text-txt-dim/80 -mt-1 mb-2">Mock-site scores — not model output</p>
             <div className="flex items-center gap-3 text-sm">
               {[
                 { label: 'Excellent', color: '#10B981' },
@@ -540,14 +562,18 @@ const Dashboard = () => {
               Solar Sites
               <span className="text-txt-dim text-base font-normal ml-2">({filteredSites.length})</span>
             </h2>
+            {/* ponytail: this panel and the map are fed by useMapData → mockSites,
+                never by the API, so the label must not follow isLive. Ceiling =
+                says "Demo data" even after the hook is wired to /v1/sites.
+                Upgrade path = have useMapData expose its source and switch here. */}
             <div className="flex items-center gap-1.5">
-              <div className="status-dot online" />
-              <span className="text-xs text-txt-dim">Live</span>
+              <div className="status-dot warning" />
+              <span className="text-xs text-txt-dim">Demo data</span>
             </div>
           </div>
 
           <div className="divide-y divide-space-border/30">
-            {filteredSites
+            {[...filteredSites]
               .sort((a, b) => b.suitability - a.suitability)
               .map((site, i) => (
                 <motion.div
@@ -587,7 +613,7 @@ const Dashboard = () => {
                         transition={{ duration: 0.2 }}
                       >
                         <Link
-                          to={`/analyze?id=${site.id}`}
+                          to={`/site/${site.id}`}
                           className="mt-3 block text-center text-sm py-2.5 rounded-lg border border-solar-gold/30 text-solar-gold hover:bg-solar-gold/10 transition-all hover:-translate-y-0.5 font-medium"
                         >
                           View Detailed Analysis →

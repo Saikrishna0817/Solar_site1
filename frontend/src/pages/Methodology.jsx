@@ -3,7 +3,29 @@ import { motion } from 'framer-motion';
 import GlassCard from '../components/ui/GlassCard';
 import SectionTitle from '../components/ui/SectionTitle';
 import { featureDefinitions } from '../data/mockFeatures';
-import { FEATURE_CATEGORIES, MODEL_WEIGHTS } from '../data/constants';
+import { FEATURE_CATEGORIES, KEY_METRICS } from '../data/constants';
+// Gate table copied from models/metrics.json by scripts/update_frontend_metrics.py
+// --write, so the page carries the same numbers the API gate enforces.
+// ponytail: baked at sync time — rerun the script after retraining, else the cards
+// show the previous run. Upgrade path: serve the table from /api/health.
+import gateMetrics from '../data/gateMetrics.json';
+
+const c0Mae = gateMetrics.c0_mae;
+const rankedModels = [...gateMetrics.models].sort((a, b) => a.cv_mae - b.cv_mae);
+const servingModel = rankedModels.find((m) => m.beats_c0) || null;
+
+// One card per trained candidate, straight from models/metrics.json.
+const modelCards = rankedModels.map((m) => ({
+  name: m.model_name.replace(/_/g, ' '),
+  badge: !m.beats_c0 ? 'Rejected' : m === servingModel ? 'Serving' : 'Passes gate',
+  color: !m.beats_c0 ? '#8B5CF6' : m === servingModel ? '#F5A623' : '#10B981',
+  params: `CV MAE ${m.cv_mae.toFixed(4)} vs C0 ${c0Mae.toFixed(4)}`,
+  strength: !m.beats_c0
+    ? 'At or above the physics baseline — evaluated in training, refused by the serving gate.'
+    : m === servingModel
+      ? 'Lowest CV MAE among models that clear the gate — the artifact src/api/services/gate.py loads.'
+      : 'Clears the baseline but loses on CV MAE, so the API never serves it.',
+}));
 
 const Methodology = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -27,19 +49,21 @@ const Methodology = () => {
       title: 'Feature Engineering',
       time: 'Stage 2',
       color: '#8B5CF6',
-      items: ['42 total features (27 raw + 15 engineered)', 'Multicollinearity removal (VIF < 10)', 'Leakage-free preprocessing pipeline', 'Stratified train/test split (80/20 by state)', 'Winsorization + log-transform + StandardScale', 'Composite index (infra, solar, climate)'],
+      items: [`${KEY_METRICS.featuresUsed} total features (raw + engineered)`, 'Collinear drop: Pearson > 0.95 pairs and known near-duplicates', 'Train/test split 80/20 stratified by state, taken before imputation', 'Train-only medians, winsorization, log-transform, StandardScaler', 'Composite infrastructure index (individual distance columns dropped)', 'Every fitted statistic comes from the training fold only'],
     },
     {
       title: 'Model Training (Real CUF)',
       time: 'Stage 3',
       color: '#F5A623',
-      items: ['Real CUF from 101 operational plants (CEA data)', 'Ridge regression with HPO (CV on train only)', 'Random Forest for feature importance ranking', '5-fold cross-validation (no test leakage)', 'Weighted composite suitability index', 'Bootstrap CI for all metrics'],
+      items: [`CEA-actual CUF labels for ${KEY_METRICS.sitesAnalyzed} in-scope plants (${KEY_METRICS.statesWithPlants} states: Telangana + Andhra Pradesh)`, `${KEY_METRICS.districtsAnalyzed}-district feature frame; physics-derived CUF is never used as a label`, 'Collinear drop + RFE (Random Forest estimator) re-fitted inside every CV fold', `${KEY_METRICS.evaluationMethod}`, 'Serving gate: CV MAE must beat the pvlib C0 physics baseline', 'Optional --hpo on train only — tuned params are reported, not yet written back'],
     },
     {
-      title: 'Scoring & Prediction',
+      title: 'Scoring & Serving',
       time: 'Stage 4',
       color: '#10B981',
-      items: ['Weighted composite suitability index (0-1 scale)', 'Ridge regression HPO-driven scoring', 'Random Forest feature importance (coeff magnitude)', 'Bootstrap confidence intervals', 'Economic calculations (LCOE, NPV, payback)', 'Spatial ranking and recommendations'],
+      items: [servingModel
+        ? `Serves ${servingModel.model_name.replace(/_/g, ' ')}: CV MAE ${servingModel.cv_mae.toFixed(4)} vs C0 baseline ${c0Mae.toFixed(4)}`
+        : 'No model clears the bar right now — the API refuses to serve (see /api/health)', 'SHAP attributions come from the live model — empty state otherwise', 'Economics (LCOE, NPV, payback) are browser-side demo formulas, not model output', 'State potential and installed capacity are NISE/MNRE published totals', 'Site scores on the map are demo data until the API serves real predictions'],
     },
   ];
 
@@ -48,7 +72,7 @@ const Methodology = () => {
       <div className="container-custom">
         <SectionTitle
           title="Methodology"
-          subtitle="A transparent, reproducible ML pipeline for solar site suitability assessment"
+          subtitle="A transparent, reproducible pipeline: CEA plant CUF labels, leave-one-district-out CV, and a physics-baseline serving gate"
         />
 
         {/* Pipeline Visualization */}
@@ -99,14 +123,10 @@ const Methodology = () => {
         </div>
 
         {/* Model Architecture */}
-        <SectionTitle title="Model Architecture" subtitle="Ridge regression as primary scorer with RF for feature importance ranking" gradient="tech" />
+        <SectionTitle title="Model Architecture" subtitle="Six candidates were trained; only models that beat the pvlib C0 physics baseline can be served" gradient="tech" />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16">
-          {[
-            { name: 'Ridge Regression', weight: 'Primary', color: '#F5A623', params: 'HPO-tuned alpha, CV-optimized on train only', strength: 'Stable coefficients, no test-set leakage, robust to collinearity' },
-            { name: 'Random Forest', weight: 'Feature Importances', color: '#10B981', params: 'n_estimators=200, max_depth=3, aggressive regularization', strength: 'Non-linear interactions, reliable importance ranking for small data' },
-            { name: 'LASSO (Planned)', weight: 'Feature Selection', color: '#8B5CF6', params: 'L1 regularization for automatic feature sparsity', strength: 'Shrinks redundant features to zero, ideal for high-dim low-N' },
-          ].map((model, i) => (
+          {modelCards.map((model, i) => (
             <motion.div
               key={model.name}
               initial={{ opacity: 0, y: 20 }}
@@ -116,10 +136,10 @@ const Methodology = () => {
             >
               <GlassCard className="h-full text-center">
                 <div
-                  className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center font-display font-bold text-xl"
+                  className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center font-display font-bold text-sm"
                   style={{ backgroundColor: `${model.color}15`, color: model.color, border: `1px solid ${model.color}30` }}
                 >
-                  {model.weight}
+                  {model.badge}
                 </div>
                 <h3 className="font-display font-semibold text-txt-primary text-xl mb-2">{model.name}</h3>
                 <p className="text-sm font-mono text-txt-dim mb-3 bg-space-surface px-3 py-1 rounded-lg inline-block">{model.params}</p>
@@ -130,7 +150,7 @@ const Methodology = () => {
         </div>
 
         {/* Feature Explorer */}
-        <SectionTitle title="42-Feature Schema" subtitle="Comprehensive feature set spanning 8 categories for holistic site assessment" gradient="mixed" />
+        <SectionTitle title="Feature Schema" subtitle={`The model trains on ${KEY_METRICS.featuresUsed} raw + engineered features; the explorer below is an illustrative catalog of ${featureDefinitions.length} named features, not the training matrix`} gradient="mixed" />
 
         {/* Category tabs */}
         <div className="flex flex-wrap gap-2 mb-6">

@@ -3,6 +3,10 @@
 //   - Installed capacity: MNRE Physical Progress (State-wise RE Installed Capacity, 31.07.2026)
 //   - Solar potential: NISE "Solar PV Potential of India (Ground Mounted) 2025" (3,343 GWp total)
 //   - GHI: NIWE Resource Portal averages (maps.niwe.res.in)
+// ponytail: suitableSites / avgSuitability / topDistrict are hand-written
+// placeholders with no source and no consumer in the app today; ceiling = a
+// future page could render them as results. Upgrade path = delete them or
+// compute them from the model/feature frame and cite how.
 
 export const stateData = [
   { state: 'Rajasthan', potentialGW: 828.78, installedGW: 44.14, suitableSites: 4250, avgGHI: 5.58, avgSuitability: 0.86, topDistrict: 'Jaisalmer', color: '#F5A623' },
@@ -27,16 +31,24 @@ export const stateData = [
   { state: 'Assam', potentialGW: 13.0, installedGW: 0.74, suitableSites: 100, avgGHI: 4.35, avgSuitability: 0.48, topDistrict: 'Kamrup', color: '#C084FC' },
 ];
 
-// Overall Summary (from MNRE/CEA official data as of 31.07.2026)
+// Overall Summary — only figures with a traceable source are kept:
+//   totalPotentialGW  NISE 2025 (same report as the state rows above)
+//   totalInstalledGW  MNRE Physical Progress, 31.07.2026 (kept in sync by
+//                     scripts/update_frontend_metrics.py, which also writes
+//                     KEY_METRICS.totalCapacityGW from the same feed)
+//   targetGW/year     MNRE 500 GW by 2030 target
+//   percentAchieved   derived here, not published: 164.59 GW solar installed ÷
+//                     500 GW renewable target = 32.9%. Solar-only numerator
+//                     against an all-renewable target — read it as "solar's
+//                     share of the 500 GW goal", not an official progress rate.
+// (totalSuitableSites / avgNationalGHI / statesWithHighPotential were dropped:
+//  they had no source and no consumer.)
 export const nationalSummary = {
   totalPotentialGW: 3343,
   totalInstalledGW: 164.59,
-  totalSuitableSites: 20780,
-  avgNationalGHI: 5.12,
   targetGW: 500,
   targetYear: 2030,
   percentAchieved: 32.9,
-  statesWithHighPotential: 8,
 };
 
 export default stateData;

@@ -2,16 +2,27 @@ import { ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid
 import { CHART_COLORS } from '../../data/constants';
 
 const ScatterPlot = ({ data = [], className = '' }) => {
-  // Generate predicted vs actual data if not provided
-  const chartData = data.length > 0 ? data : Array.from({ length: 50 }, () => {
-    const actual = Math.random() * 0.6 + 0.4;
-    const noise = (Math.random() - 0.5) * 0.12;
-    return {
-      actual: Number(actual.toFixed(3)),
-      predicted: Number((actual + noise).toFixed(3)),
-      residual: Number(Math.abs(noise).toFixed(3)),
-    };
-  });
+  // ponytail: nothing serves pooled out-of-fold predictions yet, so an empty
+  // `data` renders an honest empty state — this used to fill the chart with
+  // Math.random() points dressed up as model validation. Ceiling = the card
+  // stays empty until real predictions exist. Upgrade path = expose OOF
+  // (pred, label) pairs from the training run (models/metrics.json or a
+  // /v1/evaluation endpoint) and pass them here.
+  if (!data.length) {
+    return (
+      <div className={`w-full ${className}`} style={{ height: 400 }}>
+        <div className="w-full h-full flex items-center justify-center text-center px-8">
+          <p className="text-txt-dim text-sm leading-relaxed max-w-sm">
+            Predicted-vs-actual points require out-of-fold predictions from the
+            trained backend, which the API does not expose yet. No points are
+            drawn until it does.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const chartData = data;
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload?.length) {

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { KEY_METRICS } from '../../data/constants';
 
 const Footer = () => {
   return (
@@ -37,10 +38,10 @@ const Footer = () => {
           <div>
             <h4 className="font-display font-semibold text-txt-primary mb-4 text-base uppercase tracking-wider">Research</h4>
             <div className="flex flex-col gap-2">
-              <span className="text-txt-dim text-base">ML Ensemble Model</span>
-              <span className="text-txt-dim text-base">42-Feature Schema</span>
-              <span className="text-txt-dim text-base">127 Training Plants</span>
-              <span className="text-txt-dim text-base">R² = 0.88 Accuracy</span>
+              <span className="text-txt-dim text-base">{KEY_METRICS.modelType} model</span>
+              <span className="text-txt-dim text-base">{KEY_METRICS.featuresUsed}-Feature Schema</span>
+              <span className="text-txt-dim text-base">{KEY_METRICS.sitesAnalyzed} Training Plants</span>
+              <span className="text-txt-dim text-base">{KEY_METRICS.evaluationMethod}</span>
             </div>
           </div>
 

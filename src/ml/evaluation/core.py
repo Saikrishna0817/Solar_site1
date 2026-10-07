@@ -1,4 +1,5 @@
 """Evaluation metrics and utilities."""
+import json
 import logging
 from pathlib import Path
 from typing import Dict, List
@@ -127,6 +128,65 @@ C0_BASELINE_CSV = (
 )
 
 
+def c0_score() -> Dict[str, float] | None:
+    """C0 physics-baseline score against CEA-actual district labels.
+
+    Shared by the report and by the serving gate, so the two can never disagree.
+    Returns None when the baseline CSV is missing or has too few CEA rows.
+    """
+    try:
+        c0 = pd.read_csv(C0_BASELINE_CSV)
+    except Exception as exc:
+        logger.warning(f"C0 baseline unavailable: {exc}; run scripts/baseline_c0.py")
+        return None
+
+    cea = c0[c0["cuf_source"] == "cea_plant"] if "cuf_source" in c0 else c0.iloc[0:0]
+    if len(cea) < 3:
+        logger.warning(f"only {len(cea)} CEA-labelled districts — not enough to score C0")
+        return None
+
+    return {
+        "mae": float((cea["c0_cuf"] - cea["label_cuf"]).abs().mean()),
+        "spearman": float(cea["c0_cuf"].corr(cea["label_cuf"], method="spearman")),
+        "n_districts": int(len(cea)),
+    }
+
+
+def write_metrics(results: List[Dict], path, extra: Dict | None = None) -> Dict:
+    """Machine-readable metrics for the API serving gate.
+
+    The gate threshold is "beats the C0 physics baseline" (CV MAE < C0 MAE) — the
+    same bar the report prints. A model file that does not clear it is never served.
+    """
+    base = c0_score()
+    c0_mae = base["mae"] if base else None
+    models = []
+    for r in results:
+        mae = r.get("cv_mae_mean")
+        if mae is None or (isinstance(mae, float) and np.isnan(mae)):
+            continue
+        models.append({
+            "model_name": r["model_name"],
+            "cv_mae": float(mae),
+            "cv_r2": float(r.get("cv_r2_mean", np.nan)),
+            "test_r2": float(r.get("test_r2", np.nan)),
+            "beats_c0": bool(c0_mae is not None and mae < c0_mae),
+        })
+
+    payload = {
+        "c0_mae": c0_mae,
+        "c0_n_districts": base["n_districts"] if base else 0,
+        "threshold": "cv_mae < c0_mae",
+        "models": models,
+        **(extra or {}),
+    }
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, default=float))
+    logger.info(f"Wrote {path} ({len(models)} models, c0_mae={c0_mae})")
+    return payload
+
+
 def baseline_section(results: List[Dict]) -> List[str]:
     """Bar the models have to clear: the pvlib C0 physics baseline.
 
@@ -135,21 +195,14 @@ def baseline_section(results: List[Dict]) -> List[str]:
     know. Reported even when it is unflattering.
     """
     lines = ["\n## Baseline check (pvlib C0 physics chain)\n"]
-    try:
-        c0 = pd.read_csv(C0_BASELINE_CSV)
-    except Exception as exc:
-        lines.append(f"_baseline unavailable ({exc}); run `scripts/baseline_c0.py`._\n")
+    score = c0_score()
+    if score is None:
+        lines.append("_baseline unavailable — run `scripts/baseline_c0.py`._\n")
         return lines
 
-    cea = c0[c0["cuf_source"] == "cea_plant"] if "cuf_source" in c0 else c0.iloc[0:0]
-    if len(cea) < 3:
-        lines.append(f"_only {len(cea)} CEA-labelled districts — not enough to score._\n")
-        return lines
-
-    base_mae = float((cea["c0_cuf"] - cea["label_cuf"]).abs().mean())
-    base_rho = float(cea["c0_cuf"].corr(cea["label_cuf"], method="spearman"))
-    lines.append(f"C0 vs CEA-actual ({len(cea)} districts): "
-                 f"MAE={base_mae:.4f}, Spearman ρ={base_rho:.4f}\n\n")
+    base_mae = score["mae"]
+    lines.append(f"C0 vs CEA-actual ({score['n_districts']} districts): "
+                 f"MAE={base_mae:.4f}, Spearman ρ={score['spearman']:.4f}\n\n")
 
     lines.append("| Model | CV MAE (pooled OOF) | Beats C0? |\n")
     lines.append("|-------|---------------------|-----------|\n")

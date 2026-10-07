@@ -1,9 +1,54 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Rectangle, Polygon, useMap, useMapEvents } from 'react-leaflet';
 import { MAP_CONFIG } from '../../data/constants';
 import { suitabilityToColor, getMarkerRadius } from '../../utils/colorScale';
 import { formatScore, formatCapacity } from '../../utils/formatters';
 import 'leaflet/dist/leaflet.css';
+
+const DISTRICT_GEO_URL = '/data/tg_ap_districts.geojson';
+const NO_DATA_FILL = '#1E3A52'; // space-border: neutral, reads as "no data" on the dark tiles
+
+/* ─── District geometry loader ──────────────────────────── */
+// Module-level cache: the file is immutable for a session, so it is fetched once
+// even if MapView remounts (route changes, filter re-renders).
+let districtGeoPromise = null;
+const loadDistrictGeojson = () => {
+  if (!districtGeoPromise) {
+    districtGeoPromise = fetch(DISTRICT_GEO_URL)
+      .then((res) => {
+        if (!res.ok) throw new Error(`district geojson: ${res.status}`);
+        return res.json();
+      })
+      .catch((err) => {
+        districtGeoPromise = null; // failed — let the next mount retry
+        throw err;
+      });
+  }
+  return districtGeoPromise;
+};
+
+// undefined = not requested yet, null = load failed
+const useDistrictGeometry = (enabled) => {
+  const [geojson, setGeojson] = useState(undefined);
+  useEffect(() => {
+    if (!enabled) return undefined;
+    let alive = true;
+    loadDistrictGeojson()
+      .then((g) => { if (alive) setGeojson(g); })
+      .catch(() => { if (alive) setGeojson(null); });
+    return () => { alive = false; };
+  }, [enabled]);
+  return geojson;
+};
+
+// GeoJSON positions are [lng, lat]; Leaflet wants [lat, lng] at every depth.
+const swapCoords = (node) => (
+  typeof node[0] === 'number' ? [node[1], node[0]] : node.map(swapCoords)
+);
+
+// Canonical district keys are lowercase ("east godavari"); show them readable.
+const titleCase = (s) => String(s).replace(/\b[a-z]/g, (c) => c.toUpperCase());
+
 
 /* ─── Fly-to-site helper ───────────────────────────────── */
 const FlyToSite = ({ site }) => {
@@ -50,6 +95,9 @@ const DrawHandler = ({ drawMode, onMapClick }) => {
 };
 
 /* ─── Main MapView ───────────────────────────────── */
+// ponytail: props are intentionally untyped (repo-wide — propTypes were dropped,
+// see the note in App.jsx); ceiling = eslint react/prop-types errors here.
+// Upgrade path = PropTypes blocks or a TS .tsx port when a prop bug bites.
 const MapView = ({
   sites = [],
   selectedSite,
@@ -58,10 +106,22 @@ const MapView = ({
   polygonPoints = [],
   drawMode = false,
   onMapClick,
+  districts,
   className = '',
 }) => {
+  // Optional district choropleth — omitted entirely (no fetch, no layers) when
+  // the prop is not passed, so existing callers behave exactly as before.
+  const districtGeojson = useDistrictGeometry(Boolean(districts));
+
+  const districtEntries = useMemo(() => {
+    if (!districts) return null;
+    const byDistrict = new Map();
+    districts.forEach((d) => byDistrict.set(d.district, d));
+    return byDistrict;
+  }, [districts]);
+
   return (
-    <div className={`w-full h-full rounded-xl overflow-hidden border border-space-border ${className}`}>
+    <div className={`relative w-full h-full rounded-xl overflow-hidden border border-space-border ${className}`}>
       <MapContainer
         center={MAP_CONFIG.center}
         zoom={MAP_CONFIG.zoom}
@@ -136,6 +196,49 @@ const MapView = ({
           </CircleMarker>
         ))}
 
+        {/* ─── District Choropleth (under the site markers) ────── */}
+        {districtEntries && districtGeojson?.features?.map((feature) => {
+          const { district, state } = feature.properties;
+          const entry = districtEntries.get(district);
+          const geometry = feature.geometry;
+          if (!geometry || (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon')) return null;
+          return (
+            <Polygon
+              key={`${state}-${district}`}
+              positions={swapCoords(geometry.coordinates)}
+              pathOptions={{
+                color: '#0D1B2A',
+                weight: 0.8,
+                opacity: 0.9,
+                // `value` is mean site suitability for the district — already on
+                // the 0..1 scale suitabilityToColor() expects, so no rescale.
+                // ponytail: if a CUF/percentage ever lands here instead, divide by
+                // 100 first; upgrade path = a typed metric + scale enum on the prop.
+                fillColor: entry ? suitabilityToColor(entry.value) : NO_DATA_FILL,
+                fillOpacity: entry ? 0.55 : 0.3,
+              }}
+            >
+              <Popup className="dark-popup">
+                <div style={{ background: '#0D1B2A', color: '#E8F4FD', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', minWidth: '160px' }}>
+                  <span style={{ color: '#E8F4FD', fontWeight: 600 }}>{titleCase(district)}</span>
+                  <br />
+                  <span style={{ color: '#8BA8BF', fontSize: '11px' }}>{state}</span>
+                  <br />
+                  {entry ? (
+                    <span style={{ fontFamily: 'JetBrains Mono, monospace', color: suitabilityToColor(entry.value) }}>
+                      Mean suitability: {formatScore(entry.value)}
+                    </span>
+                  ) : (
+                    <span style={{ color: '#5A7A94', fontSize: '11px' }}>
+                      No sites match the current filters
+                    </span>
+                  )}
+                </div>
+              </Popup>
+            </Polygon>
+          );
+        })}
+
         {/* ─── Site Markers ────── */}
         {sites.map(site => (
           <CircleMarker
@@ -180,6 +283,18 @@ const MapView = ({
           </CircleMarker>
         ))}
       </MapContainer>
+
+      {/* ─── Choropleth geometry missing (honest empty state) ────── */}
+      {districts && districtGeojson === null && (
+        <div className="absolute bottom-4 right-4 z-[1000] glass-strong rounded-lg px-3 py-2 max-w-[260px]">
+          <p className="text-xs text-txt-dim leading-snug">
+            District geometry missing — run{' '}
+            <span className="font-mono text-txt-secondary">
+              .venv/bin/python scripts/build_district_geojson.py
+            </span>
+          </p>
+        </div>
+      )}
     </div>
   );
 };

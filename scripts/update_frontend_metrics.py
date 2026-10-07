@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """
-Sync frontend constants from officialStats.json
+Sync frontend constants from REAL outputs
 
-Reads the official government data feed (frontend/src/data/officialStats.json)
-and updates KEY_METRICS in frontend/src/data/constants.js and
-stateData.js with the latest verified numbers.
+Sources (in priority order):
+  * models/metrics.json      — written by `python -m src.cli.train` (features,
+                               training rows, unit, label provenance, CV method)
+  * data/plant_labels/plant_dataset.csv — the CEA plants actually in scope
+  * processed feature table  — how many districts have model features
+  * frontend/src/data/officialStats.json — MNRE/CEA published totals (unchanged)
 
 Usage:
     python scripts/update_frontend_metrics.py              # dry-run (prints changes)
@@ -13,12 +16,18 @@ Usage:
 import argparse
 import json
 import re
+
+import pandas as pd
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OFFICIAL_STATS = PROJECT_ROOT / "frontend" / "src" / "data" / "officialStats.json"
 CONSTANTS_JS = PROJECT_ROOT / "frontend" / "src" / "data" / "constants.js"
 STATEDATA_JS = PROJECT_ROOT / "frontend" / "src" / "data" / "stateData.js"
+GATE_JSON = PROJECT_ROOT / "frontend" / "src" / "data" / "gateMetrics.json"
+MODEL_METRICS = PROJECT_ROOT / "models" / "metrics.json"
+PLANT_DATASET = PROJECT_ROOT / "data" / "plant_labels" / "plant_dataset.csv"
+PROCESSED = PROJECT_ROOT / "backend" / "data_pipeline" / "outputs" / "processed"
 
 
 def load_official_stats():
@@ -28,42 +37,71 @@ def load_official_stats():
         return json.load(f)
 
 
+def load_model_metrics() -> dict:
+    if not MODEL_METRICS.exists():
+        raise FileNotFoundError(
+            f"{MODEL_METRICS} not found — train first: python -m src.cli.train"
+        )
+    return json.loads(MODEL_METRICS.read_text())
+
+
+def count_plants() -> tuple[int, int, int]:
+    """(plants, states, districts-with-features) from the real artifacts."""
+    if not PLANT_DATASET.exists():
+        raise FileNotFoundError(f"{PLANT_DATASET} not found — run scripts/build_plant_dataset.py")
+    df = pd.read_csv(PLANT_DATASET)
+    plants = len(df)
+    states = df["state"].nunique() if "state" in df.columns else 0
+
+    districts = 0
+    for name in ("master_dataset_engineered.csv", "features_train.csv"):
+        path = PROCESSED / name
+        if path.exists():
+            districts = len(pd.read_csv(path, usecols=["district"]))
+            break
+    return plants, states, districts
+
+
 def extract_metrics(feed):
-    """Derive KEY_METRICS values from the official feed."""
+    """Derive KEY_METRICS from model training output + official feeds."""
     all_india = feed.get("allIndia", {})
-    re_cap = all_india.get("reCapacity", {})
     states = feed.get("states", [])
 
-    # Total solar capacity from MNRE state-wise sum
+    # Total solar capacity from MNRE state-wise sum (official, not modeled)
     total_solar_mw = sum(s.get("solarTotalMW", 0) for s in states)
     total_re_mw = sum(s.get("totalREMW", 0) for s in states)
 
-    # States with plants: count unique states in plant CSV
-    # Hard-coded for now (18 states in CEA plant-wise data)
-    # Plant count from CSV
-    sites_analyzed = 101
+    trained = load_model_metrics()
+    plants, states_with_plants, districts = count_plants()
+
+    passing = [m for m in trained.get("models", []) if m.get("beats_c0")]
+    if not passing:
+        raise SystemExit(
+            "No model beats the C0 physics baseline (models/metrics.json) — "
+            "the frontend would publish a model that has not earned its numbers. "
+            "Retrain before syncing metrics."
+        )
+    best = min(passing, key=lambda m: m["cv_mae"])
+    unit = trained.get("unit", "district")
 
     sources = feed.get("meta", {}).get("sources", {})
-    cap_info = sources.get("stateCapacity", {})
-    mix_info = sources.get("capacityMix", {})
-    gen_info = sources.get("reGeneration", {})
-    cap_date = cap_info.get("asOn") or "latest"
-    mix_date = mix_info.get("asOn") or cap_date
-    gen_period = gen_info.get("periods", [])
+    cap_date = sources.get("stateCapacity", {}).get("asOn") or "latest"
+    mix_date = sources.get("capacityMix", {}).get("asOn") or cap_date
+    gen_period = sources.get("reGeneration", {}).get("periods", [])
     gen_label = gen_period[0] if gen_period else "latest"
 
     return {
         "targetGW": 500,
         "targetYear": 2030,
         "targetSource": "MNRE Physical Progress / PIB",
-        "sitesAnalyzed": sites_analyzed,
-        "districtsAnalyzed": 210,
-        "featuresUsed": 42,
-        "statesWithPlants": 18,
+        "sitesAnalyzed": plants,
+        "districtsAnalyzed": districts,
+        "featuresUsed": trained.get("n_features", 0),
+        "statesWithPlants": states_with_plants,
         "totalCapacityGW": round(total_solar_mw / 1000, 2),
         "totalReGW": round(total_re_mw / 1000, 2),
-        "modelType": "Weighted Composite Index + Ridge Regression",
-        "evaluationMethod": "5-fold CV + holdout (no test leakage)",
+        "modelType": f"{best['model_name']} ({unit}-level CUF)",
+        "evaluationMethod": trained.get("evaluation_method", "unknown"),
         "officialStatsSource": (
             f"MNRE Physical Progress ({cap_date}), "
             f"CEA Installed Capacity ({mix_date}), CEA RE Generation ({gen_label})"
@@ -75,7 +113,9 @@ def format_metrics(metrics):
     lines = ["export const KEY_METRICS = {"]
     for k, v in metrics.items():
         if isinstance(v, str):
-            lines.append(f"  {k}: '{v}',")
+            # escape for a single-quoted JS literal (gen labels carry apostrophes)
+            escaped = v.replace("\\", "\\\\").replace("'", "\\'")
+            lines.append(f"  {k}: '{escaped}',")
         else:
             lines.append(f"  {k}: {v},")
     lines.append("};")
@@ -147,6 +187,17 @@ def main():
 
     update_constants_js(metrics_str, dry_run=not args.write)
     update_state_data_js(feed, dry_run=not args.write)
+
+    # The per-model gate table (Methodology page) rides the same sync surface,
+    # as a JSON file inside frontend/src — no cross-directory build dependency.
+    trained = load_model_metrics()
+    gate = {k: trained[k] for k in ("c0_mae", "c0_n_districts", "threshold", "models")
+            if k in trained}
+    if dry_run := (not args.write):
+        print(f"--- {GATE_JSON.name} would be regenerated ({len(gate['models'])} models) ---")
+    else:
+        GATE_JSON.write_text(json.dumps(gate, indent=2))
+        print(f"Updated {GATE_JSON}")
 
     if not args.write:
         print("\nDry-run complete. Use --write to apply changes.")

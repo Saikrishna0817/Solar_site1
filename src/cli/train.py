@@ -5,7 +5,7 @@ Canonical entrypoint (the root main.py / train_ensemble.py wrappers are deleted)
 Fixes test-set leakage and collinear feature drops. Supports real CUF targets.
 
 Usage:
-    python -m src.cli.train --models ridge,lasso --feature-selection rfe --n-features 8
+    python -m src.cli.train --models ridge lasso --feature-selection rfe --n-features 8
     python -m src.cli.train --hpo --hpo-trials 30
     python -m src.cli.train --unit district --cuf-source all    # ablation only
 """
@@ -26,7 +26,7 @@ from src.ml.config import Config
 from src.ml.data_loader import SolarDataLoader
 from src.ml.trainer import Trainer
 from src.ml.models import get_model
-from src.ml.evaluation import generate_report, plot_feature_importance, plot_model_comparison
+from src.ml.evaluation import generate_report, plot_feature_importance, plot_model_comparison, write_metrics
 
 logger = logging.getLogger("solar_train")
 
@@ -116,6 +116,16 @@ def main():
         )
 
     generate_report(results, save_path=config.reports_dir / "ml_report.md")
+
+    # Machine-readable metrics for the API serving gate (src/api/services/gate.py).
+    write_metrics(results, config.models_dir / "metrics.json", extra={
+        "n_features": len(feature_names),
+        "n_train_rows": int(len(y_train)),
+        "unit": config.data.unit,
+        "cuf_source": config.data.cuf_source_filter,
+        "evaluation_method": "leave-one-district-out CV (pooled out-of-fold)",
+        "generated_at": pd.Timestamp.utcnow().isoformat(timespec="seconds"),
+    })
 
     if args.hpo:
         logger.info(f"\n{'=' * 60}")

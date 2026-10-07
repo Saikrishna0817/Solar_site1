@@ -1,6 +1,10 @@
-// Mock Solar Sites Data — 50 representative sites across India
-// Represents the 101 tracked solar plants in our CUF dataset
-// Each site has realistic feature values derived from the 42-feature schema
+// DEMO DATA — 50 invented sites across India, used by the map, dashboard and
+// results table. This file is NOT our dataset and NOT model output: the real
+// training set is the 13 CEA plants with actual CUF in Telangana + Andhra
+// Pradesh (KEY_METRICS in constants.js), which are never loaded here.
+// Every per-site value below — suitability, confidence, lcoe, npv,
+// paybackYears, ghi/dni, capacity, featureScores — is a hand-written or
+// formula-derived display value for the UI, never a model prediction.
 
 const generateMonthlyGeneration = (ghi, capacity) => {
   // Monthly solar generation profile for Indian locations (MWh)
@@ -20,24 +24,6 @@ const generateYearlyProjection = (initialGeneration, years = 25) => {
     generation: Math.round(initialGeneration * Math.pow(1 - degradation, i)),
     cumulative: Math.round(initialGeneration * ((1 - Math.pow(1 - degradation, i + 1)) / degradation)),
   }));
-};
-
-const generateSHAPValues = () => {
-  const features = [
-    { feature: 'GHI (kWh/m²/day)', value: (Math.random() * 0.3 + 0.1).toFixed(3) },
-    { feature: 'Grid Distance (km)', value: (Math.random() * 0.2 - 0.1).toFixed(3) },
-    { feature: 'Slope (°)', value: -(Math.random() * 0.15).toFixed(3) },
-    { feature: 'Land Availability', value: (Math.random() * 0.18 + 0.02).toFixed(3) },
-    { feature: 'Temperature (°C)', value: -(Math.random() * 0.08).toFixed(3) },
-    { feature: 'Road Distance (km)', value: -(Math.random() * 0.12).toFixed(3) },
-    { feature: 'DNI (kWh/m²/day)', value: (Math.random() * 0.22 + 0.05).toFixed(3) },
-    { feature: 'Sunshine Hours', value: (Math.random() * 0.16 + 0.04).toFixed(3) },
-    { feature: 'Substation Capacity', value: (Math.random() * 0.14).toFixed(3) },
-    { feature: 'Policy Incentives', value: (Math.random() * 0.1 + 0.02).toFixed(3) },
-    { feature: 'Dust Index', value: -(Math.random() * 0.07).toFixed(3) },
-    { feature: 'Humidity (%)', value: -(Math.random() * 0.06).toFixed(3) },
-  ];
-  return features.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
 };
 
 export const mockSites = [
@@ -147,19 +133,23 @@ export const mockSites = [
 ];
 
 // Enrich sites with computed data
+// ponytail: featureScores are mock display heuristics (formulas over the mock
+// site fields), not model output — the environmental axis used to be
+// Math.random(), so the radar changed on every reload; it is now deterministic
+// in rainfall like its siblings. Upgrade path: read real per-category scores
+// from the backend (/v1/sites/{district}) and drop this block.
 export const enrichedSites = mockSites.map(site => ({
   ...site,
   annualGeneration: Math.round(site.ghi * site.capacity * 0.18 * 365),
   monthlyGeneration: generateMonthlyGeneration(site.ghi, site.capacity),
   yearlyProjection: generateYearlyProjection(Math.round(site.ghi * site.capacity * 0.18 * 365)),
-  shapValues: generateSHAPValues(),
   featureScores: {
     solar: Math.min(1, site.ghi / 5.8),
     terrain: Math.max(0, 1 - site.slope / 8),
     land: site.landType === 'Desert' || site.landType === 'Barren' ? 0.9 : site.landType === 'Wasteland' ? 0.8 : 0.6,
     infrastructure: Math.max(0, 1 - site.gridDistance / 30),
     climate: Math.max(0, 1 - (site.humidity - 20) / 80),
-    environmental: 0.7 + Math.random() * 0.25,
+    environmental: Math.max(0, 1 - site.rainfall / 4000),
     grid: Math.max(0, 1 - site.gridDistance / 25),
     economic: Math.min(1, 3.0 / site.lcoe),
   },

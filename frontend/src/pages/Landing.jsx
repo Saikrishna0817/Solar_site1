@@ -5,6 +5,7 @@ import GradientButton from '../components/ui/GradientButton';
 import AnimatedCounter from '../components/ui/AnimatedCounter';
 import SectionTitle from '../components/ui/SectionTitle';
 import SuitabilityCalculator from '../components/calculator/SuitabilityCalculator';
+import { KEY_METRICS } from '../data/constants';
 
 const SolarGlobe = lazy(() => import('../components/three/SolarGlobe'));
 const ParticleField = lazy(() => import('../components/three/ParticleField'));
@@ -25,12 +26,16 @@ const stagger = {
 
 const Landing = () => {
   const heroStats = [
-    { value: 500, suffix: ' GW', label: 'National Target by 2030' },
-    { value: 101, suffix: '', label: 'Operational Plants Tracked' },
-    { value: 210, suffix: '+', label: 'Districts Analyzed' },
-    { value: 42, suffix: '', label: 'Input Features' },
+    { value: KEY_METRICS.targetGW, suffix: ' GW', label: `National Target by ${KEY_METRICS.targetYear}` },
+    { value: KEY_METRICS.sitesAnalyzed, suffix: '', label: 'Plants with CUF Labels' },
+    { value: KEY_METRICS.districtsAnalyzed, suffix: '', label: 'Districts Analyzed' },
+    { value: KEY_METRICS.featuresUsed, suffix: '', label: 'Input Features' },
   ];
 
+  // ponytail: the before-side figures (6-12 months, ₹50-100 lakhs, 70% fail
+  // rate) are unsourced industry folklore, not measured by this project;
+  // ceiling = a reader may treat them as study results. Upgrade path = cite a
+  // published site-selection cost/time study or drop the "Before" column.
   const problemCards = [
     { before: '6-12 months', after: '< 2 weeks', label: 'Site Assessment Time', icon: '⏱️' },
     { before: '₹50-100 Lakhs', after: '₹0 Cost', label: 'Assessment Cost', icon: '💰' },
@@ -38,18 +43,18 @@ const Landing = () => {
   ];
 
   const pipelineSteps = [
-    { title: 'Data Collection', description: '42 features from satellite, weather, grid, and economic sources across 210 districts', icon: '📡', color: '#06B6D4' },
-    { title: 'Preprocessing', description: 'Feature engineering, normalization, multicollinearity removal, and geospatial alignment', icon: '⚙️', color: '#8B5CF6' },
-    { title: 'Real CUF Target', description: 'Actual CUF from 101 operational solar plants (CEA data) as ML training target', icon: '🧠', color: '#F5A623' },
-    { title: 'Suitability Scoring', description: 'Ridge regression + RF feature importance ranking across weighted features', icon: '📈', color: '#10B981' },
-    { title: 'Ranking & Analysis', description: 'State-wise rankings, economics, and deployment recommendations', icon: '🏆', color: '#E8590C' },
+    { title: 'Data Collection', description: `${KEY_METRICS.featuresUsed} features from satellite, weather, grid, and land sources across ${KEY_METRICS.districtsAnalyzed} districts`, icon: '📡', color: '#06B6D4' },
+    { title: 'Preprocessing', description: 'Collinear-feature drop, then leakage-free imputation, winsorization, and scaling fitted on training folds only', icon: '⚙️', color: '#8B5CF6' },
+    { title: 'Real CUF Target', description: `CEA-actual CUF from ${KEY_METRICS.sitesAnalyzed} operational solar plants as the ML training target`, icon: '🧠', color: '#F5A623' },
+    { title: 'Model Training', description: 'A single elastic-net regression, with RFE feature selection re-fitted inside every cross-validation fold', icon: '📈', color: '#10B981' },
+    { title: 'Gate & Serving', description: 'The API serves the model only when its leave-one-district-out CV MAE beats the pvlib physics baseline', icon: '🏆', color: '#E8590C' },
   ];
 
   const features = [
     { title: 'Interactive Map', description: 'Explore solar plants and potential sites across India with real-time filtering', icon: '🗺️' },
-    { title: 'Real CUF Data', description: 'Trained on actual CUF from 101 operational plants (CEA), not simulated data', icon: '🤖' },
-    { title: 'Economic Analysis', description: 'LCOE, NPV, and payback calculations for each site', icon: '💹' },
-    { title: 'Transparent Scoring', description: 'Weighted composite index with feature importances for each site', icon: '🔍' },
+    { title: 'Real CUF Data', description: `Trained on CEA-actual CUF from ${KEY_METRICS.sitesAnalyzed} operational plants (Telangana + Andhra Pradesh), not simulated data`, icon: '🤖' },
+    { title: 'Economic Analysis', description: 'On-page LCOE, NPV, and payback calculators — demo estimates, not model output', icon: '💹' },
+    { title: 'Transparent Scoring', description: 'SHAP feature attributions for every served prediction, instead of a black box', icon: '🔍' },
     { title: 'Multi-Scale Analysis', description: 'Utility-scale plants and district-level solar potential assessment', icon: '🏗️' },
     { title: 'Research Ready', description: 'Publication-quality charts and export capabilities', icon: '📄' },
   ];
@@ -89,8 +94,8 @@ const Landing = () => {
             </h1>
 
             <p className="text-txt-secondary text-lg md:text-xl lg:text-2xl mb-8 max-w-xl leading-relaxed">
-              Machine learning trained on real plant performance data identifies the best locations for solar energy deployment
-              across India, supporting the <span className="text-solar-gold font-semibold">500 GW renewable target by 2030</span>.
+              Machine learning trained on real plant performance data scores district-level solar potential across India,
+              supporting the <span className="text-solar-gold font-semibold">500 GW renewable target by 2030</span>.
             </p>
 
             <motion.div
@@ -219,7 +224,7 @@ const Landing = () => {
         <div className="container-custom relative z-10">
           <SectionTitle
             title="How It Works"
-            subtitle="A five-stage ML pipeline processes 42 features per site through our ensemble model"
+            subtitle={`A five-stage pipeline: ${KEY_METRICS.featuresUsed} features per site into a single trained model, served only when it beats a physics baseline`}
             gradient="solar"
           />
 

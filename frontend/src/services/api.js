@@ -5,6 +5,8 @@ import { enrichedSites } from '../data/mockSites';
 import stateData from '../data/stateData';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'; // Default: mock mode
+// Live mode is opt-in: VITE_USE_MOCK=false (see .env.example).
+export const isLive = !USE_MOCK;
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 const delay = (ms = 300) => new Promise(resolve => setTimeout(resolve, ms));
@@ -39,6 +41,11 @@ const mockApi = {
       return dist < bestDist ? site : best;
     });
     return { data: nearest };
+  },
+
+  // No trained model behind the mock backend — never invent attributions.
+  async getSiteShap() {
+    throw new Error('SHAP requires the live backend');
   },
 };
 
@@ -75,6 +82,14 @@ const liveApi = {
       body: JSON.stringify({ latitude: lat, longitude: lng }),
     });
     if (!res.ok) throw new Error(`Prediction failed: ${res.status}`);
+    return { data: await res.json() };
+  },
+
+  // GET /v1/sites/{district}/shap → { district, model, kind, baseline, values }
+  // 404/503 when the trained model is unavailable — surfaced as a rejected promise.
+  async getSiteShap(district) {
+    const res = await fetch(`${API_BASE}/v1/sites/${encodeURIComponent(district)}/shap`);
+    if (!res.ok) throw new Error(`SHAP unavailable: ${res.status}`);
     return { data: await res.json() };
   },
 };
