@@ -1,5 +1,6 @@
 """Evaluation metrics and utilities."""
 import logging
+from pathlib import Path
 from typing import Dict, List
 
 import matplotlib.pyplot as plt
@@ -120,25 +121,72 @@ def plot_model_comparison(results_df: pd.DataFrame, save_path=None):
     return fig
 
 
+C0_BASELINE_CSV = (
+    Path(__file__).resolve().parents[3]
+    / "backend" / "data_pipeline" / "outputs" / "processed" / "c0_baseline.csv"
+)
+
+
+def baseline_section(results: List[Dict]) -> List[str]:
+    """Bar the models have to clear: the pvlib C0 physics baseline.
+
+    C0 is scored on the same CEA-actual labels the models train on, so an ML model
+    that cannot beat it has not learned anything the physics chain does not already
+    know. Reported even when it is unflattering.
+    """
+    lines = ["\n## Baseline check (pvlib C0 physics chain)\n"]
+    try:
+        c0 = pd.read_csv(C0_BASELINE_CSV)
+    except Exception as exc:
+        lines.append(f"_baseline unavailable ({exc}); run `scripts/baseline_c0.py`._\n")
+        return lines
+
+    cea = c0[c0["cuf_source"] == "cea_plant"] if "cuf_source" in c0 else c0.iloc[0:0]
+    if len(cea) < 3:
+        lines.append(f"_only {len(cea)} CEA-labelled districts — not enough to score._\n")
+        return lines
+
+    base_mae = float((cea["c0_cuf"] - cea["label_cuf"]).abs().mean())
+    base_rho = float(cea["c0_cuf"].corr(cea["label_cuf"], method="spearman"))
+    lines.append(f"C0 vs CEA-actual ({len(cea)} districts): "
+                 f"MAE={base_mae:.4f}, Spearman ρ={base_rho:.4f}\n\n")
+
+    lines.append("| Model | CV MAE (pooled OOF) | Beats C0? |\n")
+    lines.append("|-------|---------------------|-----------|\n")
+    for r in results:
+        mae = r.get("cv_mae_mean")
+        if mae is None or (isinstance(mae, float) and np.isnan(mae)):
+            continue
+        lines.append(f"| {r['model_name']:15s} | {mae:.4f} | "
+                     f"{'yes' if mae < base_mae else 'NO'} |\n")
+    lines.append("\n_CV MAE is over plant rows; C0 MAE is over district rows — "
+                 "different populations, same label definition. Negative CV R² on this "
+                 "dataset mostly reflects a narrow target range, not a broken model._\n")
+    return lines
+
+
 def generate_report(results: List[Dict], save_path="reports/ml_report.md"):
     """Generate a markdown report from results."""
     lines = []
     lines.append("# ML Training Report\n")
     lines.append("## Model Comparison\n")
-    lines.append(f"| Model | Train R² | Test R² | CV R² ± std | Test RMSE | Features |\n")
-    lines.append(f"|-------|----------|---------|-------------|-----------|----------|\n")
-    
+    lines.append(f"| Model | Train R² | Test R² | CV R² ± std | CV MAE | Test RMSE | Features |\n")
+    lines.append(f"|-------|----------|---------|-------------|--------|-----------|----------|\n")
+
     for r in results:
         cv_r2 = r.get("cv_r2_mean", "N/A")
         cv_std = r.get("cv_r2_std", "N/A")
         n_feat = r.get("n_features_selected", "N/A")
+        cv_mae = r.get("cv_mae_mean")
+        cv_mae_s = f"{cv_mae:.4f}" if cv_mae is not None and not isinstance(cv_mae, str) else "N/A"
         lines.append(
             f"| {r['model_name']:15s} | "
             f"{r['train_r2']:.4f} | {r['test_r2']:.4f} | "
-            f"{cv_r2:.4f}±{cv_std:.4f} | {r['test_rmse']:.6f} | {n_feat} |\n"
+            f"{cv_r2:.4f}±{cv_std:.4f} | {cv_mae_s} | {r['test_rmse']:.6f} | {n_feat} |\n"
         )
-    
+
     lines.append("\n")
+    lines.extend(baseline_section(results))
     lines.append("## Top Features by Model")
     for r in results:
         if "top_10_features" in r:

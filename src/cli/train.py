@@ -79,16 +79,12 @@ def main():
 
     dl = SolarDataLoader(config.data)
     X_train, y_train, X_test, y_test, feature_names = dl.load()
-    X_train_scaled, X_test_scaled = dl.fit_transform(X_train, X_test)
-    # Persist the ONE scaler inference must reuse (kills train/serve skew).
-    dl.save_preprocessor(str(config.models_dir / "preprocessor.joblib"))
+    # District per row — the trainer holds whole districts out together.
+    groups = dl.train_groups
 
-    logger.info(f"Train: {X_train_scaled.shape[0]} rows × {X_train_scaled.shape[1]} features")
-    logger.info(f"Test:  {X_test_scaled.shape[0]} rows")
+    logger.info(f"Train: {X_train.shape[0]} rows × {X_train.shape[1]} features")
+    logger.info(f"Test:  {X_test.shape[0]} rows")
     logger.info(f"Target range: [{y_train.min():.4f}, {y_train.max():.4f}]")
-
-    X_train_df = pd.DataFrame(X_train_scaled, columns=X_train.columns, index=X_train.index)
-    X_test_df = pd.DataFrame(X_test_scaled, columns=X_test.columns, index=X_test.index)
 
     trainer = Trainer(config)
     results = []
@@ -99,8 +95,8 @@ def main():
         logger.info(f"{'=' * 60}")
         try:
             res, model = trainer.train(
-                X_train_df, y_train, X_test_df, y_test, feature_names,
-                model_name=model_name,
+                X_train, y_train, X_test, y_test, feature_names,
+                model_name=model_name, groups=groups,
             )
             results.append(res)
             logger.info(f"[{model_name}] Train R²={res['train_r2']:.4f} | Test R²={res['test_r2']:.4f} | CV R²={res.get('cv_r2_mean', 0):.4f}±{res.get('cv_r2_std', 0):.4f}")
@@ -127,16 +123,20 @@ def main():
         logger.info(f"{'=' * 60}")
         from src.ml.optimization import optimize_hyperparameters
 
+        # ponytail: best params are REPORTED, not written back into the saved model —
+        # serving still uses Trainer's defaults. Upgrade path: apply study.best_params
+        # to config.model and retrain before the API loads the artifact.
         for model_name in args.models:
             try:
                 hpo_result = optimize_hyperparameters(
                     model_name,
-                    X_train_scaled,
+                    X_train.values,
                     y_train.values,
-                    X_test_scaled,
+                    X_test.values,
                     y_test.values,
                     config,
                     n_trials=args.hpo_trials,
+                    groups=groups,
                 )
                 cv_score = hpo_result.get("best_cv_score", 0)
                 test_score = hpo_result.get("test_r2", 0)

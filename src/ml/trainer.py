@@ -1,13 +1,16 @@
 """Cross-validation training with optional feature selection."""
+import json
 import logging
 from typing import Dict, List
 
+import joblib
 import numpy as np
 import pandas as pd
 from sklearn.feature_selection import RFECV
 from sklearn.linear_model import LassoCV
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import KFold
+from sklearn.preprocessing import StandardScaler
 
 from .config import Config
 from .models import get_model, BaseModel
@@ -112,21 +115,39 @@ class Trainer:
         X: pd.DataFrame,
         y: pd.Series,
         model_name: str = "random_forest",
+        groups=None,
     ) -> Dict[str, List[float]]:
-        """Group-blind KFold with **selection re-fitted inside every fold**.
+        """Leave-one-district-out CV with **selection re-fitted inside every fold**.
 
         Collinear filtering and feature selection see only the fold's train slice,
         so the CV score cannot be propped up by a selector that peeked at the
-        held-out rows.
+        held-out rows. When `groups` is given (district per row) the split is
+        spatial: all rows of a district are held out together, so no district both
+        trains and tests the same model.
+
+        R² is pooled over the out-of-fold predictions — with leave-one-out each fold
+        holds a single row, where per-fold R² is undefined.
         """
-        k = min(self.cfg.trainer.cv_folds, len(y))
-        kf = KFold(n_splits=k, shuffle=True, random_state=self.cfg.trainer.random_state)
+        if groups is not None and len(set(np.asarray(groups))) >= 2:
+            from sklearn.model_selection import LeaveOneGroupOut
+
+            splits = list(LeaveOneGroupOut().split(X, y, groups))
+            logger.info("CV: leave-one-group-out over %d districts", len(set(groups)))
+        else:
+            k = min(self.cfg.trainer.cv_folds, len(y))
+            splits = list(
+                KFold(n_splits=k, shuffle=True,
+                      random_state=self.cfg.trainer.random_state).split(X)
+            )
+            logger.info("CV: %d-fold KFold (no groups supplied)", k)
+
         scores = {"r2": [], "mse": [], "mae": [], "rmse": []}
         method = self.cfg.trainer.feature_selection_method
         n_sel = self.cfg.trainer.n_features_to_select
         fold_features: List[int] = []
+        oof = np.full(len(y), np.nan)
 
-        for fold, (train_idx, val_idx) in enumerate(kf.split(X)):
+        for fold, (train_idx, val_idx) in enumerate(splits):
             X_tr, X_va = X.iloc[train_idx], X.iloc[val_idx]
             y_tr, y_va = y.iloc[train_idx], y.iloc[val_idx]
 
@@ -140,24 +161,33 @@ class Trainer:
                 self.cfg.model.__dict__.copy(),
                 self.cfg.trainer.random_state + fold,
             )
-            fold_model.fit(X_tr.values[:, mask], y_tr.values)
-            y_pred = fold_model.predict(X_va.values[:, mask])
+            # Scaler fitted on the fold's train rows only — a scaler that saw the
+            # held-out rows is the same leak as a selector that saw them.
+            scaler = StandardScaler().fit(X_tr.values[:, mask])
+            fold_model.fit(scaler.transform(X_tr.values[:, mask]), y_tr.values)
+            y_pred = fold_model.predict(scaler.transform(X_va.values[:, mask]))
+            oof[val_idx] = y_pred
 
-            scores["r2"].append(r2_score(y_va, y_pred))
             scores["mse"].append(mean_squared_error(y_va, y_pred))
             scores["mae"].append(mean_absolute_error(y_va, y_pred))
             scores["rmse"].append(np.sqrt(mean_squared_error(y_va, y_pred)))
 
+        valid = ~np.isnan(oof)
+        scores["r2"] = [r2_score(np.asarray(y)[valid], oof[valid])]
+
         logger.info(
-            "CV (selection inside folds): %s features/fold for %s",
-            fold_features, model_name,
+            "CV (selection inside folds): %s features/fold; pooled OOF R²=%.4f, "
+            "per-fold MAE=%.4f±%.4f (%s)",
+            fold_features, scores["r2"][0],
+            float(np.mean(scores["mae"])), float(np.std(scores["mae"])), model_name,
         )
         return scores
 
     # ── training entrypoint ───────────────────────────────────
 
     def train(
-        self, X_train, y_train, X_test, y_test, feature_names, *, model_name: str = "random_forest"
+        self, X_train, y_train, X_test, y_test, feature_names, *,
+        model_name: str = "random_forest", groups=None,
     ) -> Dict:
         # Pearson>0.95 drop-one, fitted on the training rows only (val rows must not
         # influence which columns survive).
@@ -181,12 +211,19 @@ class Trainer:
         cfg_copy["feature_names"] = selected_names.tolist() if hasattr(selected_names, "tolist") else selected_names
         model = get_model(model_name, cfg_copy, self.cfg.trainer.random_state)
 
+        # ONE scaler: fit on train rows only, applied before fit and reused as-is by
+        # inference. Replaces the old double-scale path (CLI scaled, then trainer
+        # refit a second scaler on the selected features).
+        scaler = StandardScaler().fit(X_train_sel.values)
+        X_tr_s = scaler.transform(X_train_sel.values)
+        X_te_s = scaler.transform(X_test_sel.values)
+
         # Full train for final model
-        model.fit(X_train_sel.values, y_train.values)
+        model.fit(X_tr_s, y_train.values)
 
         # Predictions
-        y_pred_train = model.predict(X_train_sel.values)
-        y_pred_test = model.predict(X_test_sel.values)
+        y_pred_train = model.predict(X_tr_s)
+        y_pred_test = model.predict(X_te_s)
 
         results = {
             "model_name": model_name,
@@ -201,8 +238,8 @@ class Trainer:
             "test_rmse": np.sqrt(mean_squared_error(y_test, y_pred_test)),
         }
 
-        # CV scores: selection re-fitted per fold, so this number is not selection-aided
-        scores = self.cross_validate(X_train, y_train, model_name=model_name)
+        # CV scores: selection re-fitted per fold, districts held out together
+        scores = self.cross_validate(X_train, y_train, model_name=model_name, groups=groups)
         for metric, vals in scores.items():
             results[f"cv_{metric}_mean"] = np.mean(vals)
             results[f"cv_{metric}_std"] = np.std(vals)
@@ -214,19 +251,17 @@ class Trainer:
         model.save(str(model_path))
         results["model_path"] = str(model_path)
 
-        # Persist scaler fit on the SELECTED features so inference applies the
-        # exact same transform (train/serve parity by construction).
-        # ponytail: refit-on-scaled-data is ~identity (double-scale wart, kept for
-        # preprocess-test compat); replace with single-scale pipeline when tests allow.
-        from sklearn.preprocessing import StandardScaler
-        import joblib
-        _sel_scaler = StandardScaler().fit(X_train_sel.values)
+        # Persist that SAME scaler so inference applies the exact transform
+        # (train/serve parity by construction).
+        # ponytail: one StandardScaler, fitted once — not an sklearn Pipeline object,
+        # because BaseModel is a plain ABC without get_params/set_params. Upgrade path:
+        # make the model classes sklearn BaseEstimators, then fit one
+        # Pipeline(StandardScaler, model) and ship it as a single artifact.
         scaler_path = self.cfg.models_dir / "scaler_selected.joblib"
-        joblib.dump(_sel_scaler, scaler_path)
+        joblib.dump(scaler, scaler_path)
         results["scaler_path"] = str(scaler_path)
 
         # Save selected feature names for inference pipeline
-        import json
         feat_path = self.cfg.models_dir / "feature_names.json"
         try:
             with open(feat_path, "w") as f:

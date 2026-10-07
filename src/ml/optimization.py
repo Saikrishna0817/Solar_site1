@@ -46,23 +46,39 @@ def _cv_score(
     y: np.ndarray,
     base_config: Config,
     n_folds: int = 5,
+    groups=None,
 ) -> float:
-    """Compute cross-validated R² on training data only (NO test set leakage)."""
-    from sklearn.model_selection import KFold
+    """Cross-validated R² on training data only (NO test set leakage).
 
-    kf = KFold(n_splits=min(n_folds, len(y)), shuffle=True,
-               random_state=base_config.trainer.random_state)
+    Districts are held out together when `groups` is given, and scaling is refit
+    inside each fold — otherwise the objective rewards a scaler that saw the
+    held-out rows. R² is pooled over out-of-fold predictions, since leave-one-out
+    folds hold a single row where per-fold R² is undefined.
+    """
+    from sklearn.model_selection import KFold, LeaveOneGroupOut
+    from sklearn.preprocessing import StandardScaler
+
+    if groups is not None and len(set(np.asarray(groups))) >= 2:
+        splits = list(LeaveOneGroupOut().split(X, y, groups))
+    else:
+        splits = list(
+            KFold(n_splits=min(n_folds, len(y)), shuffle=True,
+                  random_state=base_config.trainer.random_state).split(X)
+        )
+
     cfg_dict = base_config.model.__dict__.copy()
     cfg_dict.update(hparams)
     cfg_dict["feature_names"] = list(range(X.shape[1]))
 
-    scores = []
-    for train_idx, val_idx in kf.split(X):
-        model = get_model(model_name, cfg_dict, base_config.trainer.random_state)
-        model.fit(X[train_idx], y[train_idx])
-        y_pred = model.predict(X[val_idx])
-        scores.append(r2_score(y[val_idx], y_pred))
-    return float(np.mean(scores))
+    oof = np.full(len(y), np.nan)
+    for fold, (train_idx, val_idx) in enumerate(splits):
+        model = get_model(model_name, cfg_dict, base_config.trainer.random_state + fold)
+        scaler = StandardScaler().fit(X[train_idx])
+        model.fit(scaler.transform(X[train_idx]), y[train_idx])
+        oof[val_idx] = model.predict(scaler.transform(X[val_idx]))
+
+    valid = ~np.isnan(oof)
+    return float(r2_score(y[valid], oof[valid]))
 
 
 def objective(
@@ -71,10 +87,11 @@ def objective(
     X_train: np.ndarray,
     y_train: np.ndarray,
     base_config: Config,
+    groups=None,
 ) -> float:
     """Optuna objective: maximize CV R² on training data (NO test set leakage)."""
     hparams = _suggest(trial, model_name, base_config)
-    cv_r2 = _cv_score(model_name, hparams, X_train, y_train, base_config)
+    cv_r2 = _cv_score(model_name, hparams, X_train, y_train, base_config, groups=groups)
     return cv_r2
 
 
@@ -86,6 +103,7 @@ def optimize_hyperparameters(
     y_test: np.ndarray = None,
     config: Config = None,
     n_trials: int = 30,
+    groups=None,
 ) -> Dict:
     """Run Optuna HPO using CV on training data ONLY (no test set leakage).
 
@@ -101,7 +119,7 @@ def optimize_hyperparameters(
     )
 
     def _objective(trial):
-        return objective(trial, model_name, X_train, y_train, config)
+        return objective(trial, model_name, X_train, y_train, config, groups=groups)
 
     study.optimize(_objective, n_trials=n_trials, show_progress_bar=False)
 
@@ -111,8 +129,11 @@ def optimize_hyperparameters(
     cfg_dict = config.model.__dict__.copy()
     cfg_dict.update(best_params)
     cfg_dict["feature_names"] = list(range(X_train.shape[1]))
+    from sklearn.preprocessing import StandardScaler
+    scaler = StandardScaler().fit(X_train)
+    X_tr_s = scaler.transform(X_train)
     model = get_model(model_name, cfg_dict, config.trainer.random_state)
-    model.fit(X_train, y_train)
+    model.fit(X_tr_s, y_train)
 
     result = {
         "best_params": best_params,
@@ -121,7 +142,7 @@ def optimize_hyperparameters(
         "n_trials": n_trials,
     }
     if X_test is not None and y_test is not None:
-        y_pred = model.predict(X_test)
+        y_pred = model.predict(scaler.transform(X_test))
         result["test_r2"] = r2_score(y_test, y_pred)
         logger.info(f"[{model_name}] Test R² (post-HPO, no leakage): {result['test_r2']:.4f}")
 

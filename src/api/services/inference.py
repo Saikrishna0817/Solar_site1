@@ -1,11 +1,14 @@
 """Inference service — loads trained model, applies preprocessing, and predicts CUF."""
 import json
+import logging
 import sys
 from pathlib import Path
 
 import joblib
 import numpy as np
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 MODELS_DIR = PROJECT_ROOT / "models"
@@ -95,7 +98,13 @@ def predict_cuf(latitude, longitude):
             if _scaler is not None:
                 X = _scaler.transform(X)
             cuf = float(_model.predict(X)[0])
-            cuf = max(0.05, min(0.35, cuf))
+            # No clamp: report what the model said. Out-of-band values are a symptom
+            # (bad features, extrapolation) and hiding them made it undiagnosable.
+            if not 0.05 <= cuf <= 0.35:
+                logger.warning(
+                    "Raw CUF prediction %.4f outside the plausible 0.05-0.35 band "
+                    "for district %s — reported unclamped", cuf, district,
+                )
         except (ValueError, IndexError):
             cuf = round(ghi * 0.8 / 24.0, 4)
     else:
