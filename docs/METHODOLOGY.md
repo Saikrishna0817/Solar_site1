@@ -98,3 +98,20 @@ change (`config/settings.py`, `solarpipeline/utils.py::PipelineConfig.expected_d
 | WorldPop 2020 instead of Census 2011 | Census 2011, 37/60 districts reverse-estimated | direct GeoTIFF from data.worldpop.org + `rasterio` (no GEE needed) |
 | Exclusion rules at site scale | district land-cover averages | GEE WorldCover/OSM sampled at candidate points — GEE credentials required |
 | AlphaEarth embeddings | unused | only after PCA to ~8 dims, and only if the rows justify 8 more dimensions |
+
+## 7. Validation
+
+- **Held-out plants:** `scripts/validate_heldout.py` scores the plants the trainer never
+  saw (20% hold-out, seed 42) against the saved artifact and against the C0 physics
+  chain for the same districts → `reports/heldout_validation.md`. Current result:
+  **C0 beats the model** on the hold-out (MAE 0.0079 vs 0.0101) — reported, not hidden.
+- **Baseline:** `scripts/baseline_c0.py` (pvlib PVWatts chain, daylength from SPA at
+  each centroid) is the bar. `reports/ml_report.md` carries a "Beats C0?" column per
+  model on the pooled out-of-fold predictions.
+
+### Validation ceilings
+
+| Plan item | Status | Upgrade path |
+|---|---|---|
+| Benchmark vs NREL PVWatts V8 | blocked — `developer.nrel.gov` does not resolve from this environment (curl exit code 000), so the offline `pvlib` chain cannot be cross-checked against NREL's service | `pvwatts/v8.json` with an NREL api_key once the host is reachable; the local chain already implements the same model |
+| Compare GHI with Global Solar Atlas | blocked — `api.globalsolaratlas.info` answers `403 Missing Authentication Token` for the point-query endpoints | register for a GSA token, or use the documented CSV export from the web UI; NASA POWER (already wired, reachable) is the independent cross-check available today |
