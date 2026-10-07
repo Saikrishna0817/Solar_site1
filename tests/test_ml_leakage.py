@@ -90,6 +90,7 @@ def test_hpo_ridge_space_reaches_tiny_alpha():
 def test_collinear_drop_keeps_first(tmp_path):
     from src.ml.trainer import Trainer
     from src.ml.config import Config
+    import json
     import pandas as pd
 
     X = pd.DataFrame({"a": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
@@ -99,6 +100,16 @@ def test_collinear_drop_keeps_first(tmp_path):
     cfg = Config()
     cfg.models_dir = tmp_path  # never touch real artifacts
     t = Trainer(cfg)
-    # reach into train() minimally: run full train on ridge, assert b dropped
     res, _ = t.train(X, y, X, y, list(X.columns), model_name="ridge")
     assert res["n_features_selected"] <= 2
+
+    # the twin b must be gone before selection runs, and must never be persisted
+    saved = json.loads((tmp_path / "feature_names.json").read_text())
+    assert saved == ["a", "c"], f"collinear twin leaked into the feature set: {saved}"
+
+    # one scaler artifact, fitted on train rows only
+    import joblib
+    scaler = joblib.load(tmp_path / "scaler_selected.joblib")
+    assert scaler.n_features_in_ == len(saved)
+    # fitted means it carries training means, not identity zeros/ones-from-nothing
+    assert not (scaler.mean_ == 0).all()
