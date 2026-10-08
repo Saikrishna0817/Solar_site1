@@ -1,0 +1,8 @@
+station,state,sector,fuel,month,generation_mu,generation_mwh,alias_of,label_scope,source
+Ntpc_Ramagundam_Fsp,Telangana,Central,Solar,2026-07,17.18,17180.0,ramangundam solar,isgs_subset_not_exhaustive,RE_Monthly_Generation_report_July_2026.xlsx:ISGS
+Rstps_Fsp,Telangana,Private,Solar,2026-07,12.9,12900.0,,isgs_subset_not_exhaustive,RE_Monthly_Generation_report_July_2026.xlsx:ISGS
+Greenko_Kurnool_S,Andhra Pradesh,Private,Solar,2026-07,39.63,39630.0,,isgs_subset_not_exhaustive,RE_Monthly_Generation_report_July_2026.xlsx:ISGS
+Sael1_Kurnool,Andhra Pradesh,Private,Solar,2026-07,46.17,46170.0,,isgs_subset_not_exhaustive,RE_Monthly_Generation_report_July_2026.xlsx:ISGS
+Sael2_Kurnool,Andhra Pradesh,Private,Solar,2026-07,45.33,45330.0,,isgs_subset_not_exhaustive,RE_Monthly_Generation_report_July_2026.xlsx:ISGS
+Simhadri_Fsp,Andhra Pradesh,Private,Solar,2026-07,3.27,3270.0,,isgs_subset_not_exhaustive,RE_Monthly_Generation_report_July_2026.xlsx:ISGS
+Amgreen_kurnool_S,Andhra Pradesh,Private,Solar,2026-07,156.342,156342.0,,isgs_subset_not_exhaustive,RE_Monthly_Generation_report_July_2026.xlsx:ISGS

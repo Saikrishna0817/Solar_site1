@@ -44,7 +44,7 @@ frontend/                    ← React + Vite + Tailwind + Framer Motion
 src/api/                     ← FastAPI server (5 endpoints; not wired to the frontend yet)
 src/cli/train.py             ← Canonical ML training entrypoint
 
-tests/                       ← pytest suite (46/46 passing)
+tests/                       ← pytest suite (52/52 passing)
 ```
 
 ---
@@ -59,6 +59,7 @@ tests/                       ← pytest suite (46/46 passing)
 | **Census gap** | 37/60 districts missing 2011 census; reverse-estimated from 2024 projection using 1%/yr compound growth |
 | **Infrastructure distances** | Heuristic placeholder (real OSMnx integration is a future step) |
 | **Leakage-free** | All preprocessing stats (imputation, scaling, encoding) computed on train split only |
+| **Serving gate (Gate 3)** | ML serves only if a residual model beats pvlib C0 on both the district-bootstrap LOGO CI (95 %) and held-out plants — verdict in `models/gate.json`; fail ⇒ the API serves C0 only with `kind=baseline_c0`. Predictions carry a conformal 90 % interval. |
 
 ---
 
@@ -108,7 +109,7 @@ npm run dev
 
 | Suite | Result |
 |-------|--------|
-| Unit (utils, features, leakage, pipeline, phase gates, serving gate) | ✅ 46/46 passing |
+| Unit (utils, features, leakage, pipeline, phase gates, serving gate) | ✅ 52/52 passing |
 | End-to-end pipeline | ✅ Passes on full 60-district dataset |
 
 ---
@@ -146,6 +147,23 @@ python -m src.cli.train --unit district --cuf-source all   # ablation only
 
 ---
 
+## Serving Gate (Gate 3)
+
+```bash
+python scripts/phase3_residual_ci.py     # writes models/gate.json + residual_ridge.joblib
+python -m src.api.main                   # serves cuf = c0_physics + residual, ±90% interval
+```
+
+A residual model is served only when it beats the C0 physics baseline on the
+district-bootstrap LOGO CI **and** on held-out plants (pre-registered rule,
+features in `models/pre_registered_features.json`). Gate 3 fail ⇒ C0-only
+responses labelled `kind=baseline_c0` with `ml_withheld_reason` — never a silent
+fallback. Regenerate the district CUF choropleth data with
+`scripts/export_district_cuf_frontend.py`; keep frontend constants in sync with
+`scripts/update_frontend_metrics.py --write`.
+
+---
+
 ## Outputs
 
 - `data/plant_labels/plant_dataset.csv` — plant rows × district features + `cuf_source`
@@ -153,6 +171,7 @@ python -m src.cli.train --unit district --cuf-source all   # ablation only
 - `backend/data_pipeline/outputs/processed/features_test.csv` — (12 × 40, incl. `district` id)
 - `backend/data_pipeline/outputs/processed/labels_train.csv` — CUF + `cuf_source` provenance
 - `backend/data_pipeline/outputs/reports/*.png` — EDA plots
+- `requirements.lock.txt` — exact pins from `.venv` (`pip freeze`), reproducible CI/install input
 
 ---
 

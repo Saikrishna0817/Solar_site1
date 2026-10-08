@@ -74,14 +74,23 @@ def extract_metrics(feed):
     trained = load_model_metrics()
     plants, states_with_plants, districts = count_plants()
 
-    passing = [m for m in trained.get("models", []) if m.get("beats_c0")]
-    if not passing:
-        raise SystemExit(
-            "No model beats the C0 physics baseline (models/metrics.json) — "
-            "the frontend would publish a model that has not earned its numbers. "
-            "Retrain before syncing metrics."
-        )
-    best = min(passing, key=lambda m: m["cv_mae"])
+    # Gate 3 (models/gate.json) decides what the API serves; the CV table is
+    # context. Fall back to the old CV rule only when gate.json is absent.
+    gate3 = {}
+    gate3_path = PROJECT_ROOT / "models" / "gate.json"
+    if gate3_path.exists():
+        gate3 = json.loads(gate3_path.read_text())
+    if gate3.get("gate3_pass") and gate3.get("served_model"):
+        best = {"model_name": f"residual_{gate3['served_model']} over C0"}
+    else:
+        passing = [m for m in trained.get("models", []) if m.get("beats_c0")]
+        if not passing:
+            raise SystemExit(
+                "Gate 3 has not passed and no model beats the C0 physics baseline "
+                "(models/metrics.json) — the frontend would publish a model that has "
+                "not earned its numbers. Run scripts/phase3_residual_ci.py first."
+            )
+        best = min(passing, key=lambda m: m["cv_mae"])
     unit = trained.get("unit", "district")
 
     sources = feed.get("meta", {}).get("sources", {})
@@ -193,6 +202,22 @@ def main():
     trained = load_model_metrics()
     gate = {k: trained[k] for k in ("c0_mae", "c0_n_districts", "threshold", "models")
             if k in trained}
+    # Phase 5.1: the served-model verdict rides the same sync surface.
+    gate3_path = PROJECT_ROOT / "models" / "gate.json"
+    if gate3_path.exists():
+        g3 = json.loads(gate3_path.read_text())
+        served = g3.get("served_model") or g3.get("best_model")
+        served_metrics = g3.get("models", {}).get(served, {})
+        gate["gate3"] = {
+            "gate3_pass": g3.get("gate3_pass"),
+            "served_model": g3.get("served_model"),
+            "serving": g3.get("serving"),
+            "gate3_rule": g3.get("gate3_rule"),
+            "heldout": g3.get("heldout"),
+            "delta_ci95": served_metrics.get("delta_ci95"),
+            "conformal90_halfwidth": served_metrics.get("conformal90_halfwidth"),
+            "generated_at": g3.get("generated_at"),
+        }
     if dry_run := (not args.write):
         print(f"--- {GATE_JSON.name} would be regenerated ({len(gate['models'])} models) ---")
     else:

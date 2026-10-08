@@ -4,28 +4,48 @@ import GlassCard from '../components/ui/GlassCard';
 import SectionTitle from '../components/ui/SectionTitle';
 import { featureDefinitions } from '../data/mockFeatures';
 import { FEATURE_CATEGORIES, KEY_METRICS } from '../data/constants';
-// Gate table copied from models/metrics.json by scripts/update_frontend_metrics.py
-// --write, so the page carries the same numbers the API gate enforces.
+// Gate table copied from models/metrics.json + models/gate.json by
+// scripts/update_frontend_metrics.py --write, so the page carries the same
+// numbers the API gate enforces.
 // ponytail: baked at sync time — rerun the script after retraining, else the cards
 // show the previous run. Upgrade path: serve the table from /api/health.
 import gateMetrics from '../data/gateMetrics.json';
 
 const c0Mae = gateMetrics.c0_mae;
+const gate3 = gateMetrics.gate3 || null;
+const servedName = gate3?.gate3_pass ? gate3.served_model : null;
 const rankedModels = [...gateMetrics.models].sort((a, b) => a.cv_mae - b.cv_mae);
-const servingModel = rankedModels.find((m) => m.beats_c0) || null;
+const cvFrontRunner = rankedModels.find((m) => m.beats_c0) || null;
 
-// One card per trained candidate, straight from models/metrics.json.
-const modelCards = rankedModels.map((m) => ({
+// The served artifact: residual model over C0, Gate 3 contract (LOGO bootstrap
+// CI + held-out plants), with its conformal interval.
+const servedCard = servedName ? {
+  name: `residual ${servedName} (served)`,
+  badge: 'Serving (Gate 3)',
+  color: '#F5A623',
+  params: `held-out MAE ${gate3.heldout?.model_mae?.toFixed?.(4)} vs C0 ${gate3.heldout?.c0_mae?.toFixed?.(4)}; ΔMAE CI ${gate3.delta_ci95?.map?.((v) => v.toFixed(4)).join(' to ')}`,
+  strength: `Gate 3 passed: beats C0 on the district-bootstrap CI and on held-out plants; conformal 90% half-width ±${gate3.conformal90_halfwidth?.toFixed?.(4)}. Serves as c0_physics + residual.`,
+} : {
+  name: 'serving',
+  badge: 'C0 physics only',
+  color: '#8B5CF6',
+  params: 'Gate 3 not passed',
+  strength: 'No model cleared Gate 3 — the API serves the pvlib C0 physics baseline alone.',
+};
+
+// One card per CV candidate (43-feature batch, metrics.json) — context, not
+// what the API serves; the served artifact is the card above.
+const modelCards = [servedCard, ...rankedModels.map((m) => ({
   name: m.model_name.replace(/_/g, ' '),
-  badge: !m.beats_c0 ? 'Rejected' : m === servingModel ? 'Serving' : 'Passes gate',
-  color: !m.beats_c0 ? '#8B5CF6' : m === servingModel ? '#F5A623' : '#10B981',
+  badge: !m.beats_c0 ? 'Rejected' : m === cvFrontRunner ? 'Best CV (not served)' : 'Beats C0 (CV)',
+  color: !m.beats_c0 ? '#8B5CF6' : '#10B981',
   params: `CV MAE ${m.cv_mae.toFixed(4)} vs C0 ${c0Mae.toFixed(4)}`,
   strength: !m.beats_c0
-    ? 'At or above the physics baseline — evaluated in training, refused by the serving gate.'
-    : m === servingModel
-      ? 'Lowest CV MAE among models that clear the gate — the artifact src/api/services/gate.py loads.'
-      : 'Clears the baseline but loses on CV MAE, so the API never serves it.',
-}));
+    ? 'At or above the physics baseline — refused by every gate.'
+    : m === cvFrontRunner
+      ? 'Lowest CV MAE among candidates that clear the CV rule — superseded by the pre-registered residual model, which is what src/api/services/gate.py loads.'
+      : 'Clears the CV baseline but loses on CV MAE — not served.',
+}))];
 
 const Methodology = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -55,15 +75,15 @@ const Methodology = () => {
       title: 'Model Training (Real CUF)',
       time: 'Stage 3',
       color: '#F5A623',
-      items: [`CEA-actual CUF labels for ${KEY_METRICS.sitesAnalyzed} in-scope plants (${KEY_METRICS.statesWithPlants} states: Telangana + Andhra Pradesh)`, `${KEY_METRICS.districtsAnalyzed}-district feature frame; physics-derived CUF is never used as a label`, 'Collinear drop + RFE (Random Forest estimator) re-fitted inside every CV fold', `${KEY_METRICS.evaluationMethod}`, 'Serving gate: CV MAE must beat the pvlib C0 physics baseline', 'Optional --hpo on train only — tuned params are reported, not yet written back'],
+      items: [`CEA-actual CUF labels for ${KEY_METRICS.sitesAnalyzed} in-scope plants (${KEY_METRICS.statesWithPlants} states: Telangana + Andhra Pradesh)`, `${KEY_METRICS.districtsAnalyzed}-district feature frame; physics-derived CUF is never used as a label`, 'Collinear drop + RFE (Random Forest estimator) re-fitted inside every CV fold', `${KEY_METRICS.evaluationMethod}`, 'Serving gate (Gate 3): district-bootstrap CI must beat pvlib C0 AND held-out plants must beat C0 (models/gate.json)', 'Pre-registered feature set (models/pre_registered_features.json) — committed before any run'],
     },
     {
       title: 'Scoring & Serving',
       time: 'Stage 4',
       color: '#10B981',
-      items: [servingModel
-        ? `Serves ${servingModel.model_name.replace(/_/g, ' ')}: CV MAE ${servingModel.cv_mae.toFixed(4)} vs C0 baseline ${c0Mae.toFixed(4)}`
-        : 'No model clears the bar right now — the API refuses to serve (see /api/health)', 'SHAP attributions come from the live model — empty state otherwise', 'Economics (LCOE, NPV, payback) are browser-side demo formulas, not model output', 'State potential and installed capacity are NISE/MNRE published totals', 'Site scores on the map are demo data until the API serves real predictions'],
+      items: [servedName
+        ? `Serves residual ${servedName}: held-out MAE ${gate3.heldout?.model_mae?.toFixed?.(4)} vs C0 ${gate3.heldout?.c0_mae?.toFixed?.(4)}; conformal 90% ±${gate3.conformal90_halfwidth?.toFixed?.(4)}`
+        : 'Gate 3 failed — the API serves the C0 physics baseline only (see /api/health)', 'SHAP attributions come from the live model — empty state otherwise', 'Economics (LCOE, NPV, payback) are browser-side demo formulas, not model output', 'State potential and installed capacity are NISE/MNRE published totals', 'District CUF choropleth: predicted ±90% interval, measured label where one exists (scripts/export_district_cuf_frontend.py)'],
     },
   ];
 

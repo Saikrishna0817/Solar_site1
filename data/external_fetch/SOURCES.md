@@ -77,3 +77,23 @@ MNRE physical progress · CEA installed-capacity / RE-generation / API / gen-re 
 2. Fill 60-district + 101-plant features via NASA POWER + GEE + real OSM.
 3. Hybrid training per locked scope (plant `annual_cuf` + district physics, `cuf_source` flag, ML-correctness first).
 4. Validate vs NISE district potential + CEA state CUF + SRRA before 766-district expansion.
+
+## H. Label sources (Phase 1)
+
+| Item | Local path | Source URL | Access / licence | Use |
+|------|------------|------------|------------------|-----|
+| TGTRANSCO monthly transmission-loss PDFs (29 months, Mar-2021 … Nov-2025, gapped) | `data/raw/tgtransco/Tr_losses_*.pdf` + `data/raw/tgtransco/SHA256SUMS` | `https://www.tgtransco.com/user_uploads/trans_losses/Tr_losses_<Mon>-<YYYY>.pdf` | Downloaded 2026-10-08; Indian govt publication, licence not stated (treat as public, attribution: TGTRANSCO) | Label factory `scripts/build_tgtransco_labels.py` → `data/plant_labels/plant_month_energy.csv`, `plant_registry.csv`, `plant_capacity.csv`, `plant_cuf.csv`; QA `reports/label_qa.md` |
+
+**Naming gotcha:** the month token in the URL/filename is *not* normalised — both full and
+abbreviated forms exist in the archive (`Tr_losses_May-2024.pdf` alongside `Tr_losses_Aug-2023.pdf`;
+also `Tr_losses_April-2022.pdf`/`Tr_losses_April-2024.pdf` vs `Tr_losses_Apr-2023.pdf`). Any fetch
+loop must try both `<FullMonth>` and `<Abb>` before concluding a month is missing. Parser already
+accepts both (`scripts/build_tgtransco_labels.py`, `MONTHS` map).
+
+## I. Phase 4 / Phase 6 fetches (2026-10-08)
+
+| Item | Local path | Source URL | Access / licence | Use |
+|------|------------|------------|------------------|-----|
+| CEA daily RE report (State-Wise cumulative month totals), 3 files: 2024-06-30, 2024-07-31, 2025-11-30 | `data/official/Report-*.xlsx` + `data/official/SHA256SUMS` | `https://gen-re.cea.gov.in/public/uploads/dailyReport/excel/Report-<YYYY-MM-DD>.xlsx` | Open (Indian govt, licence not stated); archive starts 2024-06-30 (older dates 404) | Phase 4 energy balance: CEA state solar (MU) same-month vs TGTRANSCO plant sums |
+| CEA CO2 Baseline Database v20.0 (data year 2023-24, dated 2024-12-01) | `data/official/CO2_Database_Version_20.0_2023_24.xlsx` (sha256 in `data/official/SHA256SUMS`) | `https://cea.nic.in/wp-content/uploads/2021/03/CO2_Database_Version_20.0_2023_24.xlsx` (from `https://cea.nic.in/cdm-co2-baseline-database/?lang=en`) | Open | Phase 6: SOM 0.9615 / CM 0.7568 / WAvg 0.7275 tCO2/MWh → PAPER §4 scenario EF band |
+| AP plant-wise monthly generation search (tried apspdcl/aptransco/apsldc/nredcap/CEA/Wikipedia/NREL/GSA) | `data/external_fetch/state/AP_monthly_data_memo.md` | see memo | — | Phase 1.6: source log + RTI draft [PENDING RTI] |

@@ -62,23 +62,3 @@ export const calculateSuitability = (inputs) => {
   };
 };
 
-// Economic calculations
-export const calculateEconomics = (capacity, suitability, ghi) => {
-  const annualGeneration = capacity * ghi * 0.18 * 365; // MWh
-  const capitalCost = capacity * 4.5; // ₹ Crore per MW
-  const annualRevenue = annualGeneration * 2.5 / 10000000; // ₹ Crore (at ₹2.5/kWh)
-  const annualOM = capitalCost * 0.015; // 1.5% of capex
-  const netAnnualRevenue = annualRevenue - annualOM;
-  const lcoe = (capitalCost * 10000000 * 0.1) / annualGeneration; // ₹/kWh (10% CRF)
-  const npv = netAnnualRevenue * 12 - capitalCost; // Simplified 25yr NPV
-  const payback = capitalCost / netAnnualRevenue;
-
-  return {
-    annualGeneration: Math.round(annualGeneration),
-    capitalCost: Math.round(capitalCost * 100) / 100,
-    annualRevenue: Math.round(annualRevenue * 100) / 100,
-    lcoe: Math.round(lcoe * 100) / 100,
-    npv: Math.round(npv * 100) / 100,
-    paybackYears: Math.round(payback * 10) / 10,
-  };
-};

@@ -1,0 +1,14 @@
+plant_name,district,state,cuf,c0_cuf,cuf_model,err_c0,err_model
+Kurnool Ultra Mega Solar,kurnool,Andhra Pradesh,0.20799,0.1878,0.19796,0.02019,0.01004
+NP Kunta Solar Park,anantapuram,Andhra Pradesh,0.20502,0.1908,0.21049,0.01422,0.00547
+Anantapur Solar Park,anantapuram,Andhra Pradesh,0.20205,0.1908,0.21049,0.01125,0.00844
+Kadapa Solar Zone,ysr kadapa,Andhra Pradesh,0.19817,0.1848,0.19299,0.01337,0.00518
+Galiveedu Solar,annamayya,Andhra Pradesh,0.19521,0.1864,0.1969,0.00881,0.00169
+Tadipatri Solar,anantapuram,Andhra Pradesh,0.20104,0.1908,0.21049,0.01024,0.00945
+Hyderabad Solar Belt,ranga reddy,Telangana,0.19007,0.1819,0.18656,0.00817,0.0035
+Mahbubnagar Solar,mahabubnagar,Telangana,0.18798,0.1826,0.18963,0.00538,0.00166
+Nalgonda Solar Farm,nalgonda,Telangana,0.18455,0.179,0.18274,0.00555,0.00181
+Warangal Solar,warangal,Telangana,0.18151,0.1794,0.18381,0.00211,0.0023
+Karimnagar Solar,karimnagar,Telangana,0.18122,0.178,0.18068,0.00322,0.00054
+Nizamabad Solar,nizamabad,Telangana,0.17884,0.1801,0.18554,0.00126,0.00669
+Adilabad Solar,adilabad,Telangana,0.17808,0.1772,0.17925,0.00088,0.00117

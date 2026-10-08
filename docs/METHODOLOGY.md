@@ -101,13 +101,21 @@ change (`config/settings.py`, `solarpipeline/utils.py::PipelineConfig.expected_d
 
 ## 7. Validation
 
-- **Held-out plants:** `scripts/validate_heldout.py` scores the plants the trainer never
-  saw (20% hold-out, seed 42) against the saved artifact and against the C0 physics
-  chain for the same districts → `reports/heldout_validation.md`. Current result:
-  **C0 beats the model** on the hold-out (MAE 0.0079 vs 0.0101) — reported, not hidden.
+- **Held-out plants (Gate 3):** `scripts/phase3_residual_ci.py` splits the 13 labelled
+  plants (20 %, seed 42) and scores the *same pre-registered model spec* the API serves
+  against C0 → `models/gate.json`. Current result: **residual ridge wins** (0.0064 vs
+  0.00785) and its LOGO district-bootstrap ΔMAE CI is [−0.00565, −0.00115] (excludes 0),
+  so Gate 3 passes and ML serves. The earlier 43-feature artifact scored in
+  `scripts/validate_heldout.py` → `reports/heldout_validation.md` **lost** there
+  (C0 0.0079 vs 0.0101) — kept as history, not served.
+- **Energy balance:** `scripts/phase4_energy_balance.py` compares TGTRANSCO solar plant
+  sums against CEA state totals for the same month → `reports/energy_balance.md`
+  (measured ratios 0.70–0.79: EBC tables cover a subset of state solar — flagged).
 - **Baseline:** `scripts/baseline_c0.py` (pvlib PVWatts chain, daylength from SPA at
   each centroid) is the bar. `reports/ml_report.md` carries a "Beats C0?" column per
   model on the pooled out-of-fold predictions.
+- **Serving rule:** `src/api/services/gate.py` reads `models/gate.json` (Gate 3 verdict +
+  conformal interval) — if Gate 3 fails, only the C0 baseline serves, labelled as such.
 
 ### Validation ceilings
 

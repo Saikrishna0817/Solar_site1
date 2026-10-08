@@ -32,14 +32,10 @@ const Landing = () => {
     { value: KEY_METRICS.featuresUsed, suffix: '', label: 'Input Features' },
   ];
 
-  // ponytail: the before-side figures (6-12 months, ₹50-100 lakhs, 70% fail
-  // rate) are unsourced industry folklore, not measured by this project;
-  // ceiling = a reader may treat them as study results. Upgrade path = cite a
-  // published site-selection cost/time study or drop the "Before" column.
   const problemCards = [
-    { before: '6-12 months', after: '< 2 weeks', label: 'Site Assessment Time', icon: '⏱️' },
-    { before: '₹50-100 Lakhs', after: '₹0 Cost', label: 'Assessment Cost', icon: '💰' },
-    { before: '70% fail rate', after: 'Data-Driven', label: 'Decision Quality', icon: '📊' },
+    { before: 'Manual review', after: 'Automated', label: 'Site Assessment', icon: '⏱️' },
+    { before: 'Field surveys', after: 'Browser-based', label: 'Assessment Cost', icon: '💰' },
+    { before: 'Subjective calls', after: 'Data-Driven', label: 'Decision Quality', icon: '📊' },
   ];
 
   const pipelineSteps = [
@@ -51,7 +47,7 @@ const Landing = () => {
   ];
 
   const features = [
-    { title: 'Interactive Map', description: 'Explore solar plants and potential sites across India with real-time filtering', icon: '🗺️' },
+    { title: 'Interactive Map', description: 'Explore solar sites and districts across Telangana + Andhra Pradesh with real-time filtering', icon: '🗺️' },
     { title: 'Real CUF Data', description: `Trained on CEA-actual CUF from ${KEY_METRICS.sitesAnalyzed} operational plants (Telangana + Andhra Pradesh), not simulated data`, icon: '🤖' },
     { title: 'Economic Analysis', description: 'On-page LCOE, NPV, and payback calculators — demo estimates, not model output', icon: '💹' },
     { title: 'Transparent Scoring', description: 'SHAP feature attributions for every served prediction, instead of a black box', icon: '🔍' },
@@ -94,7 +90,8 @@ const Landing = () => {
             </h1>
 
             <p className="text-txt-secondary text-lg md:text-xl lg:text-2xl mb-8 max-w-xl leading-relaxed">
-              Machine learning trained on real plant performance data scores district-level solar potential across India,
+              Machine learning trained on real plant performance data scores district-level solar potential across
+              Telangana and Andhra Pradesh,
               supporting the <span className="text-solar-gold font-semibold">500 GW renewable target by 2030</span>.
             </p>
 

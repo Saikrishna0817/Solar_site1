@@ -1,0 +1,70 @@
+{
+  "generated_at": "2026-10-08T13:46:29+00:00",
+  "unit": "plant",
+  "cv": "leave-one-district-out",
+  "n_rows": 13,
+  "n_districts": 11,
+  "pre_registered_features": [
+    "avg_ghi_kwh_m2_day",
+    "max_temp_c"
+  ],
+  "models": {
+    "ridge": {
+      "logo_mae": 0.00446,
+      "c0_mae": 0.00805,
+      "delta_mae": -0.00359,
+      "delta_ci95": [
+        -0.00565,
+        -0.00115
+      ],
+      "beats_c0_point": true,
+      "beats_c0_ci95": true,
+      "conformal90_halfwidth": 0.00945
+    },
+    "elastic_net": {
+      "logo_mae": 0.00541,
+      "c0_mae": 0.00805,
+      "delta_mae": -0.00264,
+      "delta_ci95": [
+        -0.00556,
+        0.00141
+      ],
+      "beats_c0_point": true,
+      "beats_c0_ci95": false,
+      "conformal90_halfwidth": 0.00987
+    }
+  },
+  "best_model": "ridge",
+  "heldout_all": {
+    "ridge": {
+      "model_mae": 0.0064,
+      "c0_mae": 0.00785,
+      "winner": "model",
+      "n_heldout": 3,
+      "seed": 42
+    },
+    "elastic_net": {
+      "model_mae": 0.00915,
+      "c0_mae": 0.00785,
+      "winner": "c0",
+      "n_heldout": 3,
+      "seed": 42
+    }
+  },
+  "heldout": {
+    "model_mae": 0.0064,
+    "c0_mae": 0.00785,
+    "winner": "model",
+    "n_heldout": 3,
+    "seed": 42
+  },
+  "gate3_by_model": {
+    "ridge": true,
+    "elastic_net": false
+  },
+  "gate3_pass": true,
+  "served_model": "ridge",
+  "artifact": "models/residual_ridge.joblib",
+  "gate3_rule": "LOGO MAE beats C0 with 95% district-bootstrap CI excluding 0 AND held-out plants (same artifact) beat C0",
+  "serving": "ml:ridge"
+}

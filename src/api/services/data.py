@@ -10,12 +10,31 @@ PROCESSED_DIR = PROJECT_ROOT / "backend" / "data_pipeline" / "outputs" / "proces
 _sites_cache = None
 
 
-def _normalize_row(row, idx):
+def suitability_from_cuf(cuf, reference_cufs=None):
+    """Suitability score = percentile rank of `cuf` among the in-scope
+    districts' CUF values (0-1).
+
+    The old `cuf / 0.22` divided by a fixed assumed CUF, which invented a
+    scale no source supports. This is a documented relative scale instead:
+    1.0 = at or above the best in-scope district, 0.5 ≈ median, 0 = below all.
+    With no reference distribution to rank against there is no relative
+    position to report, hence 0.5.
+    """
+    if reference_cufs is None:
+        reference_cufs = [s["cuf_predicted"] for s in load_processed_sites()]
+    vals = sorted(reference_cufs)
+    if not vals:
+        return 0.5
+    return round(sum(1 for v in vals if v <= cuf) / len(vals), 3)
+
+
+def _normalize_row(row, idx, cufs):
+    cuf = float(row.get("cuf", 0.15))
     return {
         "district": str(row.get("district", f"site_{idx}")),
         "state": str(row.get("state", "Unknown")),
-        "cuf_predicted": float(row.get("cuf", 0.15)),
-        "suitability_score": round(float(row.get("cuf", 0.15)) / 0.22, 3),
+        "cuf_predicted": cuf,
+        "suitability_score": suitability_from_cuf(cuf, cufs),
         "ghi": float(row.get("avg_ghi_kwh_m2_day", 5.0)),
         "temperature": float(row.get("avg_temp_c", 27.0)),
         "elevation": float(row.get("elevation_m", 300)),
@@ -36,9 +55,10 @@ def load_processed_sites():
         return _sites_cache
 
     df = pd.read_csv(features_path)
+    cufs = [float(v) for v in df["cuf"].dropna()] if "cuf" in df.columns else []
     sites = []
     for idx, row in df.iterrows():
-        sites.append(_normalize_row(row, idx))
+        sites.append(_normalize_row(row, idx, cufs))
     _sites_cache = sites
     return sites
 

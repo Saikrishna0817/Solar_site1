@@ -1,0 +1,13 @@
+plant_name,installed_capacity_mw,capacity_source,ac_dc
+132kv SCCL 30MW Solar Plant (Manuguru),30.0,name-embedded MW in TGTRANSCO table,AC (not stated otherwise)
+132kv SCCL 37 MW Solar Plant (Sitharampatnam),37.0,name-embedded MW in TGTRANSCO table,AC (not stated otherwise)
+NTPC Solar power plant (10MW),10.0,name-embedded MW in TGTRANSCO table,AC (not stated otherwise)
+SCCL 30MW Solar Plant (Manuguru),30.0,name-embedded MW in TGTRANSCO table,AC (not stated otherwise)
+Ramangundam Solar,100.0,CEA daily RE report 10 Mar 2025,AC (not stated otherwise)
+Hyderabad Solar Belt,200.0,CEA plant register,AC (not stated otherwise)
+Mahbubnagar Solar,150.0,CEA plant register,AC (not stated otherwise)
+Nalgonda Solar Farm,120.0,CEA plant register,AC (not stated otherwise)
+Warangal Solar,100.0,CEA plant register,AC (not stated otherwise)
+Karimnagar Solar,80.0,CEA plant register,AC (not stated otherwise)
+Nizamabad Solar,60.0,CEA plant register,AC (not stated otherwise)
+Adilabad Solar,50.0,CEA plant register,AC (not stated otherwise)

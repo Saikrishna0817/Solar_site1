@@ -71,13 +71,9 @@ export const MAP_CONFIG = {
 };
 
 // ─── States of India ───────────────────────────────────────
+// Project scope: Telangana + Andhra Pradesh only (60 districts).
 export const INDIAN_STATES = [
-  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
-  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
-  'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
-  'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
-  'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
-  'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+  'Andhra Pradesh', 'Telangana',
 ];
 
 // ─── Land Types ────────────────────────────────────────────
@@ -105,7 +101,7 @@ export const KEY_METRICS = {
   statesWithPlants: 2,
   totalCapacityGW: 164.59,
   totalReGW: 291.73,
-  modelType: 'elastic_net (plant-level CUF)',
+  modelType: 'residual_ridge over C0 (plant-level CUF)',
   evaluationMethod: 'leave-one-district-out CV (pooled out-of-fold)',
   officialStatsSource: 'MNRE Physical Progress (31.07.2026), CEA Installed Capacity (31.07.2026), CEA RE Generation (RE Generation July \'2026)',
 };

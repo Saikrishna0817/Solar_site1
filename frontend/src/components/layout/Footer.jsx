@@ -18,7 +18,7 @@ const Footer = () => {
               </span>
             </Link>
             <p className="text-txt-dim text-base leading-relaxed">
-              AI-powered platform identifying optimal solar energy deployment locations across India,
+              AI-powered platform identifying optimal solar energy deployment locations in Telangana and Andhra Pradesh,
               supporting the 500 GW renewable energy target by 2030.
             </p>
           </div>

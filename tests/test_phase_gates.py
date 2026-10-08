@@ -7,6 +7,9 @@ Guards the plan's gates:
   * collinear twins never reach the saved feature set (see test_ml_leakage)
 """
 from pathlib import Path
+import json
+import math
+import re
 
 import pandas as pd
 import pytest
@@ -78,3 +81,74 @@ def test_district_frame_matches_expected_count():
         "District frame changed — update PipelineConfig.expected_districts and the "
         "README in the same commit (61 when Polavaram lands)."
     )
+
+
+# --- Gate 2 (Phase 2) + hygiene (Phase 7) -------------------------------------
+
+LABEL_DERIVED = re.compile(
+    r"(^|_)(mu|energy|generation|label|actual|installed_capacity)(_|$)", re.I
+)
+
+
+def _pre_registered() -> dict:
+    path = ROOT / "models" / "pre_registered_features.json"
+    assert path.exists(), "feature list not pre-registered — run scripts/phase3_residual_ci.py"
+    return json.loads(path.read_text())
+
+
+def test_feature_table_has_no_label_derived_columns():
+    """Gate 2: no label-derived column may sit in the feature tables or the list."""
+    pre = _pre_registered()
+    df = pd.read_csv(PLANT_DATASET)
+    bad = [c for c in df.columns if LABEL_DERIVED.search(c) and c != "cuf"]
+    assert not bad, f"label-derived columns leaked into plant_dataset: {bad}"
+    feats = pre["features"]
+    assert not [f for f in feats if LABEL_DERIVED.search(f) or f == "cuf"], (
+        "pre-registered feature list includes the target or a label-derived column"
+    )
+    report = ROOT / "reports" / "feature_sources.md"
+    assert report.exists(), "every feature needs a source row (Phase 2 Gate 2)"
+    txt = report.read_text()
+    for f in feats:
+        assert f in txt, f"feature '{f}' has no source row in feature_sources.md"
+
+
+def test_pre_registered_feature_count_within_n_over_10():
+    """Hygiene: model feature count <= ceil(n/10), rounding documented in the file."""
+    pre = _pre_registered()
+    n = int(pre["n"])
+    cap = math.ceil(n / 10)
+    assert len(pre["features"]) <= cap, (
+        f"{len(pre['features'])} features for n={n} exceeds ceil(n/10)={cap}"
+    )
+    assert pre.get("committed_before_runs") is True
+    assert pre.get("n_over_10") == round(n / 10, 1)
+
+
+def test_gate_json_schema():
+    """Gate 3 artefact carries the verdict, both checks, the interval and CI."""
+    gate = json.loads((ROOT / "models" / "gate.json").read_text())
+    required = {"generated_at", "cv", "n_rows", "n_districts",
+                "pre_registered_features", "models", "heldout", "gate3_pass",
+                "served_model", "artifact", "serving"}
+    missing = required - set(gate)
+    assert not missing, f"gate.json missing keys: {sorted(missing)}"
+    served = gate["served_model"]
+    lo, hi = gate["models"][served]["delta_ci95"]
+    assert lo < hi, "CI ordering broken"
+    if gate["gate3_pass"]:
+        assert hi < 0, "Gate 3 passed without the CI excluding zero"
+    assert "conformal90_halfwidth" in gate["models"][served]
+    assert gate["heldout"]["winner"] in {"model", "c0"}
+
+
+def test_label_csv_schemas():
+    """Phase 1 outputs keep their provenance columns."""
+    base = ROOT / "data" / "plant_labels"
+    e = pd.read_csv(base / "plant_month_energy.csv")
+    assert {"plant_name", "month", "mu", "source_file", "state", "source_url"} <= set(e.columns)
+    assert e["mu"].notna().all()
+    c = pd.read_csv(base / "plant_cuf.csv")
+    assert set(c["cuf_source"]) == {"official_monthly"}
+    i = pd.read_csv(base / "cea_isgs_month_energy.csv")
+    assert {"station", "month", "generation_mwh", "alias_of"} <= set(i.columns)

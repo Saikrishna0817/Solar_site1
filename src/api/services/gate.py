@@ -1,12 +1,14 @@
-"""Serving gate — the API only serves models that beat the C0 physics baseline.
+"""Serving gate — Phase 5.1: reads Phase 3 results (models/gate.json), not only CV MAE.
 
-Threshold is the same bar the report prints: CV MAE < C0 MAE (see
-src/ml/evaluation/core.py::write_metrics). Nothing else is checked: no free-form
-thresholds to tune, no per-model exceptions.
+Gate 3 rule (scripts/phase3_residual_ci.py):
+  * residual model beats C0 on pooled leave-one-district-out MAE with the 95%
+    district-bootstrap interval excluding zero, AND
+  * the same model spec beats C0 on held-out plants (20%, seed 42).
+Only then is an ML artifact served; otherwise the API serves the C0 physics
+baseline alone and says so.
 
-ponytail: one file, one rule. If the project ever needs graded serving (e.g. warn
-below 1.0x C0, block above 1.2x), move the rule into metrics.json as numbers and
-read it here — do not grow a policy engine.
+ponytail: one JSON, one rule, no policy engine. When Gate 3 ever needs grades
+(warn vs block), add numbers to gate.json — don't grow this file.
 """
 import json
 import logging
@@ -17,10 +19,11 @@ logger = logging.getLogger(__name__)
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 MODELS_DIR = PROJECT_ROOT / "models"
 METRICS_PATH = MODELS_DIR / "metrics.json"
+GATE_PATH = MODELS_DIR / "gate.json"
 
 
 class ModelNotServable(Exception):
-    """No trained model clears the serving threshold."""
+    """No trained model clears the serving gate."""
 
 
 def load_metrics() -> dict:
@@ -34,42 +37,75 @@ def load_metrics() -> dict:
         raise ModelNotServable(f"models/metrics.json unreadable: {exc}")
 
 
+def load_gate() -> dict:
+    if not GATE_PATH.exists():
+        raise ModelNotServable(
+            "models/gate.json missing — run scripts/phase3_residual_ci.py"
+        )
+    try:
+        return json.loads(GATE_PATH.read_text())
+    except (OSError, ValueError) as exc:
+        raise ModelNotServable(f"models/gate.json unreadable: {exc}")
+
+
+def serving_artifact() -> Path:
+    """Path of the Gate-3-approved artifact — the only ML bundle /predict loads.
+
+    Raises ModelNotServable when Gate 3 failed: callers must fall back to the
+    C0 baseline (or refuse), never to an unapproved artifact.
+    """
+    gate = load_gate()
+    if not gate.get("gate3_pass") or not gate.get("served_model"):
+        raise ModelNotServable(
+            f"Gate 3 failed (held-out or LOGO-CI): {gate.get('gate3_by_model')} — "
+            "serving baseline C0 only"
+        )
+    artifact = gate.get("artifact")
+    path = PROJECT_ROOT / str(artifact) if artifact else None
+    if path is None or not path.exists():
+        raise ModelNotServable(
+            f"gate-approved artifact missing ({artifact}) — re-run "
+            "scripts/phase3_residual_ci.py"
+        )
+    return path
+
+
 def serving_model() -> str:
-    """Name of the best model that beats C0 — the one /predict will load."""
-    metrics = load_metrics()
-    c0_mae = metrics.get("c0_mae")
-    if not c0_mae:
-        raise ModelNotServable(
-            "C0 baseline score unavailable — run scripts/baseline_c0.py, then retrain"
-        )
-
-    passing = [m for m in metrics.get("models", []) if m.get("beats_c0")]
-    if not passing:
-        raise ModelNotServable(
-            f"no model beats the C0 physics baseline (c0_mae={c0_mae:.4f}) — "
-            "refusing to serve; improve the model or raise the baseline honestly"
-        )
-
-    best = min(passing, key=lambda m: m["cv_mae"])
-    name = str(best["model_name"])
-    if not (MODELS_DIR / f"{name}.joblib").exists():
-        raise ModelNotServable(f"model '{name}' passes the gate but its artifact is missing")
-    return name
+    """Name of the Gate-3-approved model ('ridge' etc.)."""
+    gate = load_gate()
+    if not gate.get("gate3_pass") or not gate.get("served_model"):
+        raise ModelNotServable("Gate 3 failed — no ML model is served")
+    return str(gate["served_model"])
 
 
 def gate_status() -> dict:
-    """For /api/health — reports the verdict without ever raising."""
+    """For /api/health — the verdict, interval and held-out check; never raises."""
+    out: dict = {"metrics_ok": False, "serving_model": None}
     try:
-        name = serving_model()
-        metrics = load_metrics()
-        best = next(m for m in metrics["models"] if m["model_name"] == name)
-        return {
-            "metrics_ok": True,
-            "serving_model": name,
-            "cv_mae": best["cv_mae"],
-            "cv_r2": best["cv_r2"],
-            "c0_mae": metrics["c0_mae"],
-            "threshold": metrics.get("threshold", "cv_mae < c0_mae"),
-        }
+        gate = load_gate()
     except ModelNotServable as exc:
-        return {"metrics_ok": False, "serving_model": None, "reason": str(exc)}
+        out["reason"] = str(exc)
+        return out
+    out.update({
+        "gate3_pass": bool(gate.get("gate3_pass")),
+        "gate3_rule": gate.get("gate3_rule"),
+        "heldout": gate.get("heldout"),
+        "conformal90_halfwidth": (gate.get("models", {})
+                                  .get(gate.get("served_model") or "", {})
+                                  .get("conformal90_halfwidth")),
+        "serving": gate.get("serving"),
+        "best_model": gate.get("best_model"),
+        "delta_ci95": (gate.get("models", {})
+                       .get(gate.get("served_model") or gate.get("best_model") or "", {})
+                       .get("delta_ci95")),
+    })
+    if gate.get("gate3_pass"):
+        out["serving_model"] = gate.get("served_model")
+    try:
+        metrics = load_metrics()
+        out["metrics_ok"] = True
+        out["c0_mae"] = metrics.get("c0_mae")
+        out["threshold"] = gate.get("gate3_rule")
+    except ModelNotServable as exc:
+        out["reason"] = str(exc)
+    return out

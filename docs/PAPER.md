@@ -32,12 +32,15 @@ claim if the flaw were left unaddressed. Status = what this repo has already don
 | L5 | `assign_mandal_new_districts.py` picked the first match on ambiguity | **High** — wrong district labels poison grouping | **FIXED** (Phase 0) | ambiguous rows get `district_new=""`, `_method="ambiguous"`, reported (`scripts/assign_mandal_new_districts.py:187`) |
 | L6 | `baseline_c0.py` used placeholder daylight hours and derate | **High** — the serving gate depends on C0 being real | **FIXED** (Phase 3) | real pvlib SPA daylength + 14 % derate; C0 MAE **0.0074678** over 11 districts, Spearman ρ 0.9091 `[MODEL OUTPUT]` |
 | L7 | AlphaEarth adds 64 dimensions against few rows (p ≫ n) | **High** — would reintroduce the overfit trap | **OPEN / NOT USED** (deliberate ceiling, METHODOLOGY §6) | `docs/NEXT_PHASES_PLAN.md` §AEF: embeddings allowed only after PCA to ~8 dims and only on CV gain |
-| L8 | No plant-level validation | **High** — district averages can hide plant error | **MITIGATED** (Phase 4), not closed | `reports/heldout_validation.md`: on 3 held-out plants **C0 beats model** (MAE 0.0079 vs 0.0101) `[MEASURED]` |
+| L8 | No plant-level validation | **High** — district averages can hide plant error | **CLOSED** (Gate 3, `models/gate.json`) | Residual ridge beats C0 on LOGO with 95 % district-bootstrap CI **[−0.00565, −0.00115]** and on held-out plants (0.0064 vs 0.00785, n=3, seed 42) `[MEASURED]`; the earlier 43-feature artifact lost there (0.0101 vs 0.0079, `reports/heldout_validation.md`) and is **not** served. |
 
-**Claim-bearing reading of the table.** Two of eight flaws are still open (L1, L7), one is only
-mitigated (L8). The paper's central claim must therefore be written as *"a leakage-audited,
-CEA-label-only baseline for district/plant CUF in Telangana + AP, with a physics baseline that
-still wins on held-out plants"* — not as a performance claim.
+**Claim-bearing reading of the table.** Two of eight flaws are still open (L1, L7); L8 closed
+under the pre-registered Gate 3 rule (LOGO CI + held-out). The paper's central claim is
+therefore *"a leakage-audited, CEA-label-only baseline for district/plant CUF in Telangana +
+AP, served only when a residual model beats the pvlib C0 physics baseline on both the LOGO
+bootstrap interval and held-out plants (`models/gate.json`)"* — not a generalisation claim.
+Every served prediction carries a split-conformal 90 % interval (half-width ±0.00945 CUF,
+`reports/residual_ci.md`), and the API labels which path produced it (`kind`).
 
 ### 1.1 Additional disclosed limitations (beyond the eight)
 
@@ -50,9 +53,20 @@ still wins on held-out plants"* — not as a performance claim.
 - **GEE-dependent features are absent**: zonal statistics, WorldPop 2020, site-scale exclusion masks
   (METHODOLOGY §6 ceilings). No GEE credentials in this environment `[PENDING]`.
 - **Independent cross-checks pending**: NREL PVWatts V8 and Global Solar Atlas comparisons
-  (NREL DNS unresolvable; GSA returns 403) — METHODOLOGY §7 ceilings `[PENDING]`.
-- **Baseline C0 is competitive**: it beats 4 of 6 models on CV and beats the model on the 3-plant
-  hold-out. Any ablation must report against C0, not against zero.
+  (NREL DNS unresolvable; GSA returns 403) — METHODOLOGY §7 ceilings `[PENDING]`. The C1
+  (GSA PVOUT) storage baseline therefore remains unimplemented; only C0 (pvlib, offline) is
+  available as the physics baseline.
+- **Baseline C0 is competitive**: it beats 4 of 6 models on CV and beats the old 43-feature
+  artifact on the 3-plant hold-out. The served residual ridge beats C0 on both Gate 3 checks
+  (held-out 0.0064 vs 0.00785). Any ablation must report against C0, not against zero.
+- **TGTRANSCO label factory (Phase 1) is parsed but capacity-starved**: 29 monthly `Tr_losses` PDFs
+  (raw + SHA-256 in `data/raw/tgtransco/`) were parsed into `data/plant_labels/plant_month_energy.csv`
+  — 2321 rows, 65 solar plant names, 29 months of official net-energy MU `[OFFICIAL]`; only **3 plants**
+  reach a valid 12-month CUF because TGTRANSCO publishes name + MU only (capacity unpublished), so the
+  Gate 1 acceptance ("40 plants, or an explicit decision") was closed as **"proceed with fewer"**;
+  capacity gap routes to TGERC/PPA/RTI, and **AP monthly plant-wise data is still not found → RTI path**
+  `[PENDING]`. Source: `reports/label_qa.md`, `data/plant_labels/plant_capacity.csv` (12 sourced
+  capacities), `plant_cuf.csv` (6 rows / 3 plants, `cuf_source=official_monthly`).
 
 ---
 
@@ -103,10 +117,13 @@ Used for: district potential priors; replaces the 2014 748 GWp figure.
 ```
 
 ```
-CEA CO2 Baseline Database for the Power Sector (latest edition).
-Access: https://cea.nic.in/ (CO2 baseline database section).  [PENDING — not fetched]
-Used for: grid/coal emission factor in §4. Until fetched, §4 quotes only a clearly
-labelled assumption band; no CEA emission number is asserted in this repo.
+CEA CO2 Baseline Database for the Power Sector, Version 20.0 (data year 2023-24),
+dated 2024-12-01.
+File: data/official/CO2_Database_Version_20.0_2023_24.xlsx
+sha256: 3bebd8e5e575d55bd470ac44cf0e6106f9b933862efc25b9137fefba92ae647c
+Access: https://cea.nic.in/cdm-co2-baseline-database/ (open).
+Used for: §4 emission factors (all-India, incl. imports): Simple Operating Margin
+0.9615, Combined Margin 0.7568, Weighted Average 0.7275 t CO2/MWh (2023-24).
 ```
 
 ### 2.2 Earth observation / geospatial (open licences)
@@ -194,16 +211,18 @@ credentials in this environment `[PENDING]`. Therefore:
 **Positioning statement for the target venue (draft).**
 > Prior Indian solar-siting work scores sites against simulated or classification labels and
 > reports 0.9+ accuracies. We instead publish a *negative-result-tolerant* pipeline on real
-> CEA generation: a physics baseline (pvlib SPA + 14 % derate) that still beats our best
-> regularised model on held-out plants, and a serving gate that will not deploy a weaker
-> model. The contribution is the auditable protocol (labels, exclusions, group CV, gate) and
-> the release of a 60-district, plant-level CUF frame for Telangana + AP.
+> CEA generation: a physics baseline (pvlib SPA + 14 % derate) that every served residual
+> model must beat on the pre-registered Gate 3 (LOGO bootstrap CI **and** held-out plants),
+> enforced by a serving gate that refuses an unproven model. The contribution is the
+> auditable protocol (labels, exclusions, group CV, gate) and the release of a 60-district,
+> plant-level CUF frame for Telangana + AP.
 
 ---
 
 ## 4. Scenarios — coal-to-solar and CO₂ reduction
 
-All inputs flagged. No emission factor is asserted as sourced (§2.1 `[PENDING]`).
+All inputs flagged. Emission factors are sourced from CEA CO₂ Baseline Database v20.0
+(§2.1 citation block; file + sha256 in `data/official/SHA256SUMS`).
 
 **Inputs**
 
@@ -215,17 +234,17 @@ All inputs flagged. No emission factor is asserted as sourced (§2.1 `[PENDING]`
 | Combined RES (MNRE) capacity | 19,010.4 MW (AP 13,385.4 + TG 5,625.0) | `[OFFICIAL]` rows 169/173 |
 | All-source installed capacity TG+AP | 53,804.8 MW (AP 31,114.9 + TG 22,690.0) | `[OFFICIAL]` rows 169/173 |
 | Plant CUF used for displaced generation | **0.1917** (mean of 13 in-scope CEA plants, range 0.1781–0.2080) | `[MEASURED]` `data/plant_labels/plant_dataset.csv` |
-| Emission factor for coal generation | **0.9–1.05 t CO₂/MWh — assumption band only** | `[ASSUMPTION]` pending CEA CO₂ Baseline Database fetch |
+| Emission factor for displaced coal generation | **0.7568–0.9615 t CO₂/MWh** (Combined Margin–Simple Operating Margin, all-India, incl. imports, 2023-24) | `[OFFICIAL]` CEA CO2 Baseline Database v20.0, Results sheet (Weighted Average 0.7275 also reported there) |
 
 **Method.** Replace a fraction *f* of combined coal+lignite capacity with solar at the
 measured CUF: `generation = f × 26,908.7 MW × 8,760 h × 0.1917`;
 `CO₂ avoided = generation × EF`.
 
-| Replaced share *f* | Solar MW | Annual generation | CO₂ avoided (EF 0.9–1.05) |
+| Replaced share *f* | Solar MW | Annual generation | CO₂ avoided (CM 0.7568–SOM 0.9615) |
 |---|---|---|---|
-| 10 % | 2,691 MW | 4.52 TWh `[DERIVED]` | 4.07–4.74 Mt/yr `[DERIVED, ASSUMPTION EF]` |
-| 25 % | 6,727 MW | 11.30 TWh `[DERIVED]` | 10.17–11.86 Mt/yr `[DERIVED, ASSUMPTION EF]` |
-| 50 % | 13,454 MW | 22.59 TWh `[DERIVED]` | 20.33–23.72 Mt/yr `[DERIVED, ASSUMPTION EF]` |
+| 10 % | 2,691 MW | 4.52 TWh `[DERIVED]` | 3.42–4.35 Mt/yr `[DERIVED, CEA v20.0 EF]` |
+| 25 % | 6,727 MW | 11.30 TWh `[DERIVED]` | 8.55–10.86 Mt/yr `[DERIVED, CEA v20.0 EF]` |
+| 50 % | 13,454 MW | 22.59 TWh `[DERIVED]` | 17.10–21.72 Mt/yr `[DERIVED, CEA v20.0 EF]` |
 
 **Explicitly excluded from the arithmetic (state in the paper):** transmission/distribution
 limits, curtailment, land availability, storage, seasonal mismatch between solar output and
@@ -242,7 +261,7 @@ failure as PVWatts V8), and the free REopt Lite API requires that endpoint.
 
 - **Ceiling recorded:** do not fabricate storage sizing; add it only when the API is reachable
   or a local re-implementation (rule-based 2 h / 4 h storage on the scenario in §4) is agreed.
-- **Trigger to unpark:** model gate stays green (elastic_net still beats C0) **and** NREL
+- **Trigger to unpark:** Gate 3 stays green in `models/gate.json` **and** NREL
   endpoint resolves.
 - `ponytail:` — no local storage model written now; upgrade path = REopt Lite API call in
   `scripts/` behind the same `--scenario` CLI shape as §4.
@@ -251,9 +270,14 @@ failure as PVWatts V8), and the free REopt Lite API requires that endpoint.
 
 ## 6. What the manuscript must never claim (guard list)
 
-1. Any accuracy that is not in `models/metrics.json` / `reports/heldout_validation.md`.
-2. That the model beats the physics baseline on held-out plants (it does not; C0 wins 0.0079 vs 0.0101).
+1. Any accuracy that is not in `models/metrics.json` / `models/gate.json` / `reports/heldout_validation.md`.
+2. Held-out wins from the **old** 43-feature artifact (C0 wins 0.0079 vs 0.0101 there); the only
+   valid held-out claim is `models/gate.json`'s pre-registered residual model (0.0064 vs 0.00785,
+   LOGO CI [−0.00565, −0.00115]).
 3. AlphaEarth-derived features (collector never ran).
-4. A CEA CO₂ emission factor before §2.1's `[PENDING]` source is fetched.
+4. A CEA CO₂ emission factor other than CEA CO2 Baseline Database v20.0 values (0.7568 CM /
+   0.9615 SOM / 0.7275 WAvg, 2023-24) — always cite version + data year.
 5. 700+ plant labels, 42/43-feature demos, "5-fold CV", or 101-plant coverage as *model* facts.
 6. Random or seeded-fake SHAP as real attributions (live `/shap` only).
+7. That TGTRANSCO plant sums equal the CEA state totals: the measured ratio is 0.70–0.79
+   (scope mismatch — EBC tables list a subset of state solar, `reports/energy_balance.md`).

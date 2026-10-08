@@ -1,0 +1,11 @@
+{
+  "features": [
+    "avg_ghi_kwh_m2_day",
+    "max_temp_c"
+  ],
+  "rationale": "physics: irradiance sets the ceiling, cell temp derates it",
+  "n": 13,
+  "n_over_10": 1.3,
+  "note": "n/10 = 1.3 rounded up to 2 for an identifiable linear model",
+  "committed_before_runs": true
+}

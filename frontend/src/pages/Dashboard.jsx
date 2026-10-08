@@ -7,6 +7,7 @@ import { suitabilityToColor } from '../utils/colorScale';
 import { canonicalDistrict } from '../utils/districts';
 import { formatCapacity, formatScore } from '../utils/formatters';
 import { INDIAN_STATES } from '../data/constants';
+import districtCuf from '../data/districtCuf.json';
 
 const BBOX_SIZE_KM = 5; // bounding box half-size in km
 const KM_TO_DEG_LAT = 1 / 111.32;
@@ -19,6 +20,9 @@ const Dashboard = () => {
 
   const [showFilters, setShowFilters] = useState(false);
   const [activePanel, setActivePanel] = useState(null); // 'coords' | 'polygon' | null
+  // Choropleth metric: suitability (demo sites) or measured/predicted CUF
+  // with the model's conformal 90% interval (Phase 5.8).
+  const [choroplethMetric, setChoroplethMetric] = useState('suitability');
 
   // ─── Coordinate input state ─────────────────────
   const [coordLat, setCoordLat] = useState('');
@@ -131,10 +135,29 @@ const Dashboard = () => {
     };
   }, [polygonPoints, filteredSites]);
 
-  // ─── Choropleth values: mean suitability per district over filteredSites ───
-  // Districts present in the geometry but with no site left after the filters
-  // are simply absent here, so MapView renders them neutral (no-data).
+  // ─── Choropleth values ───────────────────────────────────────
+  // 'suitability': mean per district over filteredSites (demo data) — districts
+  // with no site left after the filters stay absent (MapView renders no-data).
+  // 'cuf': all 60 districts from districtCuf.json (predicted C0+residual, ±90%
+  // conformal interval, measured label where one exists) — colour is normalised
+  // across the 60 predicted values; raw CUF is shown in the popup.
   const districtValues = useMemo(() => {
+    if (choroplethMetric === 'cuf') {
+      const preds = districtCuf.districts.map((d) => d.cuf_predicted);
+      const lo = Math.min(...preds);
+      const hi = Math.max(...preds);
+      return districtCuf.districts.map((d) => ({
+        district: d.district,
+        state: d.state,
+        value: hi > lo ? (d.cuf_predicted - lo) / (hi - lo) : 0.5,
+        metric: 'cuf',
+        cuf: d.cuf_predicted,
+        c0: d.c0_physics,
+        interval: d.interval_90,
+        measured: d.measured_cuf,
+        gate3: districtCuf.gate3_pass,
+      }));
+    }
     const byDistrict = new Map();
     filteredSites.forEach((site) => {
       const district = canonicalDistrict(site.district);
@@ -148,8 +171,9 @@ const Dashboard = () => {
       district,
       state,
       value: sum / count,
+      metric: 'suitability',
     }));
-  }, [filteredSites]);
+  }, [filteredSites, choroplethMetric]);
 
   return (
     <div className="min-h-screen pt-20 bg-space-deep">
@@ -234,6 +258,17 @@ const Dashboard = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
                 </svg>
                 {drawMode ? 'Cancel Draw' : 'Select Area'}
+              </button>
+
+              <button
+                onClick={() => setChoroplethMetric((m) => (m === 'cuf' ? 'suitability' : 'cuf'))}
+                className={`map-tool-btn ${choroplethMetric === 'cuf' ? 'active' : ''}`}
+                title="Choropleth: suitability vs measured/predicted CUF with 90% interval"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                {choroplethMetric === 'cuf' ? 'CUF Map' : 'Suitability Map'}
               </button>
             </div>
 

@@ -34,12 +34,19 @@ class PredictionResponse(BaseModel):
     district: str
     state: str
     cuf_predicted: float
+    c0_physics: float
     suitability_score: float
     suitability_label: str
     ghi: float
     temperature: float
+    interval_90: list[float] | None = None
+    kind: str = "unknown"
+    features_source: str = "unknown"
+    within_domain: bool | None = None
+    domain_distance_km: float | None = None
+    ml_withheld_reason: str | None = None
     serving_model: str = "unknown"
-    model_version: str = "1.0.0"
+    model_version: str = "2.0.0"
 
 
 class SiteSummary(BaseModel):
@@ -78,6 +85,11 @@ class HealthResponse(BaseModel):
     serving_model: str | None = None
     c0_mae: float | None = None
     cv_mae: float | None = None
+    gate3_pass: bool | None = None
+    heldout: dict | None = None
+    conformal90_halfwidth: float | None = None
+    delta_ci95: list | None = None
+    serving: str | None = None
 
 
 @app.get("/api/health", response_model=HealthResponse)
@@ -91,15 +103,21 @@ async def health_check():
         n_districts = len(load_processed_sites())  # cached; counts what /sites actually serves
     except Exception:
         n_districts = 0  # ponytail: corrupt CSV degrades to 0, not 500; fix the CSV, not this.
+    healthy = gate["metrics_ok"] and gate.get("gate3_pass", False)
     return {
-        "status": "healthy" if gate["metrics_ok"] else "degraded",
-        "model_version": "1.0.0",
-        "model_loaded": bool(gate["metrics_ok"]),
+        "status": "healthy" if healthy else "degraded",
+        "model_version": "2.0.0",
+        "model_loaded": bool(gate.get("serving_model")),
         "districts_available": n_districts,
         "metrics_ok": gate["metrics_ok"],
         "serving_model": gate.get("serving_model"),
         "c0_mae": gate.get("c0_mae"),
         "cv_mae": gate.get("cv_mae"),
+        "gate3_pass": gate.get("gate3_pass"),
+        "heldout": gate.get("heldout"),
+        "conformal90_halfwidth": gate.get("conformal90_halfwidth"),
+        "delta_ci95": gate.get("delta_ci95"),
+        "serving": gate.get("serving"),
     }
 
 

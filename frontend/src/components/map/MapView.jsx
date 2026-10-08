@@ -224,7 +224,28 @@ const MapView = ({
                   <br />
                   <span style={{ color: '#8BA8BF', fontSize: '11px' }}>{state}</span>
                   <br />
-                  {entry ? (
+                  {entry.metric === 'cuf' ? (
+                    // Phase 5.8: measured vs predicted CUF with uncertainty
+                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', lineHeight: 1.6 }}>
+                      <span style={{ color: '#06B6D4' }}>
+                        Pred CUF: {entry.cuf.toFixed(4)}
+                      </span>
+                      <br />
+                      <span style={{ color: '#8BA8BF' }}>
+                        90% interval: {entry.interval[0].toFixed(4)}–{entry.interval[1].toFixed(4)}
+                      </span>
+                      <br />
+                      <span style={{ color: '#F5A623' }}>
+                        {entry.measured != null
+                          ? `Measured: ${entry.measured.toFixed(4)}`
+                          : 'Measured: no label'}
+                      </span>
+                      <br />
+                      <span style={{ color: '#5A7A94', fontSize: '10px' }}>
+                        C0: {entry.c0.toFixed(4)} · Gate 3 {entry.gate3 ? 'pass' : 'fail'}
+                      </span>
+                    </span>
+                  ) : entry ? (
                     <span style={{ fontFamily: 'JetBrains Mono, monospace', color: suitabilityToColor(entry.value) }}>
                       Mean suitability: {formatScore(entry.value)}
                     </span>

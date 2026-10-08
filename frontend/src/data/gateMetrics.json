@@ -45,5 +45,24 @@
       "test_r2": 0.14276935610868913,
       "beats_c0": false
     }
-  ]
+  ],
+  "gate3": {
+    "gate3_pass": true,
+    "served_model": "ridge",
+    "serving": "ml:ridge",
+    "gate3_rule": "LOGO MAE beats C0 with 95% district-bootstrap CI excluding 0 AND held-out plants (same artifact) beat C0",
+    "heldout": {
+      "model_mae": 0.0064,
+      "c0_mae": 0.00785,
+      "winner": "model",
+      "n_heldout": 3,
+      "seed": 42
+    },
+    "delta_ci95": [
+      -0.00565,
+      -0.00115
+    ],
+    "conformal90_halfwidth": 0.00945,
+    "generated_at": "2026-10-08T13:46:29+00:00"
+  }
 }

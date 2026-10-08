@@ -49,13 +49,10 @@ const Results = () => {
   // plant-level CUF for 13 CEA plants, not all-India suitability.
   // Case 3 cites the NISE 2025 report and MNRE installed capacity.
   const cases = [
-    { id: 1, title: 'Bhadla Solar Park', sub: "World's Largest Solar Park — demo walkthrough", state: 'Rajasthan', score: 0.94, cap: null, demo: true,
-      finding: 'Demo data, not a model prediction: the mock site list ranks Bhadla first at 0.94, consistent with its real-world status as the world\'s largest solar park.',
-      details: 'Mock values (mockSites.js): GHI 5.72 | DNI 5.45 | Elevation 220m | Grid 8km | LCOE ₹2.15/kWh' },
-    { id: 2, title: 'Mahbubnagar, Telangana', sub: 'Emerging Solar Hub — demo walkthrough', state: 'Telangana', score: 0.83, cap: null, demo: true,
+    { id: 1, title: 'Mahbubnagar, Telangana', sub: 'Emerging Solar Hub — demo walkthrough', state: 'Telangana', score: 0.83, cap: null, demo: true,
       finding: 'Demo data, not a model prediction: the mock site list ranks Mahbubnagar as Telangana\'s top location.',
       details: 'Mock values (mockSites.js): GHI 5.38 | DNI 5.08 | Elevation 440m | Grid 10km | LCOE ₹2.42/kWh' },
-    { id: 3, title: '500 GW Target Assessment', sub: 'National Policy Scenario (published)', state: 'Pan-India', score: null, cap: '3,343 GWp',
+    { id: 2, title: '500 GW Target Assessment', sub: 'National Policy Scenario (published)', state: 'Pan-India', score: null, cap: '3,343 GWp',
       finding: 'India has 3,343 GWp deployable ground-mounted solar potential (NISE 2025) across 27,571 km², exceeding the 500 GW target. Top: Rajasthan (829 GW), Maharashtra (487 GW), Madhya Pradesh (319 GW).',
       details: 'NISE 2025 report | 27,571 km² feasible | 6.69% wasteland used | 3,343 GWp total potential | 164.59 GW solar installed (MNRE, 31.07.2026)' },
   ];
@@ -123,7 +120,7 @@ const Results = () => {
         </GlassCard>
 
         {/* Top Sites Table */}
-        <SectionTitle title="Top Ranked Sites" subtitle="Demo data — 50 mock sites from mockSites.js; scores, LCOE and NPV are placeholders, not model output" gradient="solar" />
+        <SectionTitle title="Top Ranked Sites" subtitle="Demo data — 11 mock sites in Telangana + Andhra Pradesh from mockSites.js; scores, LCOE and NPV are placeholders, not model output" gradient="solar" />
         <GlassCard hover={false} className="mb-16 overflow-x-auto">
           <div className="flex items-center gap-4 mb-4">
             <span className="text-txt-dim text-sm">Sort:</span>

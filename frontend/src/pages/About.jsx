@@ -32,16 +32,12 @@ const About = () => {
         />
 
         {/* Mission */}
-        {/* ponytail: the "6-12 months / ₹50-100 lakhs / 70% failure rate" figures
-            are unsourced industry folklore, not measured by this project;
-            ceiling = they read as study results. Upgrade path = cite a published
-            site-selection cost/time study or drop the sentence. */}
         <GlassCard hover={false} className="mb-10 max-w-4xl mx-auto">
           <h3 className="font-display font-bold text-2xl text-txt-primary mb-4 gradient-text-solar">Our Mission</h3>
           <p className="text-txt-secondary text-base leading-relaxed mb-4">
             India's ambitious target of {KEY_METRICS.targetGW} GW renewable energy capacity by {KEY_METRICS.targetYear} requires identifying thousands
             of optimal solar farm locations across the country. Traditional site selection methods are slow,
-            expensive, and subjective — taking 6-12 months and ₹50-100 lakhs per site assessment, with a 70% failure rate.
+            expensive, and subjective.
           </p>
           <p className="text-txt-secondary leading-relaxed">
             <strong className="text-txt-primary">SolarSite-India</strong> trains an elastic-net regression on CEA-actual
@@ -106,7 +102,7 @@ const About = () => {
               SolarSite-India: AI-Optimized Solar Energy Site Selection Using Real-Plant CUF Data
             </h3>
             <p className="text-txt-dim text-sm mb-6">
-              A framework for identifying optimal solar deployment locations across India using {KEY_METRICS.featuresUsed} geospatial, climatic, and economic features, trained on real Capacity Utilization Factor (CUF) data from {KEY_METRICS.sitesAnalyzed} operational solar plants.
+              A framework for identifying optimal solar deployment locations in Telangana and Andhra Pradesh using {KEY_METRICS.featuresUsed} geospatial, climatic, and economic features, trained on real Capacity Utilization Factor (CUF) data from {KEY_METRICS.sitesAnalyzed} operational solar plants.
             </p>
 
             <div className="glass p-4 rounded-lg mb-6 text-left">
